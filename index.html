@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Selo</title>
+<meta name="description" content="Seus documentos, cifrados no seu aparelho.">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="estilo.css">
+<meta name="theme-color" content="#0f1115">
+<link rel="icon" href="icone.svg" type="image/svg+xml">
+</head>
+<body>
+
+<div id="aviso" class="aviso oculto"></div>
+
+<!-- ======================= A TRANCA ======================= -->
+<section id="tela-tranca" class="tela ativa">
+  <div class="tranca">
+    <svg class="marca" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="7"/>
+      <path d="M38 50l9 9 16-18" fill="none" stroke="currentColor"
+            stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1>Selo</h1>
+
+    <!-- Primeira vez neste aparelho -->
+    <div id="passo-criar" class="oculto">
+      <p class="dica">Escolha a senha que vai abrir o seu cofre. Uma frase de
+         quatro ou cinco palavras que só faça sentido para você vale mais que
+         uma palavra difícil — e é bem mais fácil de lembrar.</p>
+      <label class="campo">
+        <span class="rotulo">Senha</span>
+        <input id="senha-nova" type="password" autocomplete="new-password">
+      </label>
+      <label class="campo">
+        <span class="rotulo">Repita a senha</span>
+        <input id="senha-nova2" type="password" autocomplete="new-password">
+      </label>
+      <button id="criar" class="principal">Criar o cofre</button>
+    </div>
+
+    <!-- A folha. É o único momento em que o código aparece. -->
+    <div id="passo-codigo" class="oculto">
+      <p class="titulo-forte">Guarde esta folha</p>
+      <p class="dica">Este é o seu código de recuperação. Ele abre o cofre se
+         você esquecer a senha, e <b>não aparece de novo</b> — não fica guardado
+         em lugar nenhum, e é isso que o torna seguro.</p>
+      <p class="codigo mono" id="codigo"></p>
+      <div class="botoes">
+        <button id="copiar-codigo" class="secundario">Copiar</button>
+        <button id="imprimir-codigo" class="secundario">Imprimir</button>
+      </div>
+      <p class="dica">Sozinho ele não abre nada — sem o arquivo do cofre é um
+         monte de letras. Por isso pode ficar impresso na casa de outra pessoa
+         sem risco.</p>
+      <label class="opcao">
+        <input id="guardei" type="checkbox">
+        <span>Guardei o código num lugar seguro</span>
+      </label>
+      <button id="entrar-primeira" class="principal" disabled>Entrar no cofre</button>
+    </div>
+
+    <!-- Cofre já existe -->
+    <div id="passo-abrir" class="oculto">
+      <label class="campo">
+        <span class="rotulo">Senha</span>
+        <input id="senha" type="password" autocomplete="current-password"
+               enterkeyhint="go">
+      </label>
+      <button id="abrir" class="principal">Abrir</button>
+      <button id="esqueci" class="mini">Não lembro a senha</button>
+
+      <div id="passo-recuperar" class="oculto">
+        <label class="campo">
+          <span class="rotulo">Código de recuperação</span>
+          <input id="codigo-entrada" type="text" autocomplete="off"
+                 placeholder="XXXX-XXXX-XXXX-…" enterkeyhint="go">
+        </label>
+        <button id="abrir-codigo" class="principal">Abrir com o código</button>
+        <p class="dica">Pode digitar com ou sem os traços, em maiúscula ou não.</p>
+      </div>
+    </div>
+
+    <!-- Aparelho novo, ou cofre apagado pelo navegador -->
+    <div id="passo-restaurar" class="oculto">
+      <p class="dica">Tem uma cópia de segurança? Traga ela de volta.</p>
+      <button id="escolher-copia" class="secundario">Restaurar de uma cópia</button>
+      <input id="arquivo-copia" type="file" accept=".selo,application/json" class="escondido">
+    </div>
+  </div>
+</section>
+
+<!-- ======================= A LISTA ======================= -->
+<section id="tela-lista" class="tela">
+  <header class="cabecalho">
+    <h1>Selo</h1>
+    <button id="trancar" class="icone" aria-label="Trancar o cofre">🔒</button>
+  </header>
+
+  <div class="corpo">
+    <div id="vencendo" class="alerta oculto"></div>
+
+    <label class="campo">
+      <input id="busca" type="search" placeholder="Buscar documento" autocomplete="off">
+    </label>
+
+    <div id="lista" class="lista"></div>
+
+    <button id="novo" class="principal">Guardar um documento</button>
+    <button id="ir-ajustes" class="secundario">Cópia de segurança e senha</button>
+  </div>
+</section>
+
+<!-- ======================= UM DOCUMENTO ======================= -->
+<section id="tela-doc" class="tela">
+  <header class="cabecalho">
+    <button id="voltar" class="icone" aria-label="Voltar">←</button>
+    <h1 id="doc-titulo-topo">Documento</h1>
+  </header>
+
+  <div class="corpo">
+    <label class="campo">
+      <span class="rotulo">O que é</span>
+      <input id="doc-titulo" type="text" placeholder="Ex.: CNH" autocomplete="off">
+    </label>
+
+    <div class="dois">
+      <label class="campo">
+        <span class="rotulo">Tipo</span>
+        <select id="doc-tipo"></select>
+      </label>
+      <label class="campo">
+        <span class="rotulo">De quem</span>
+        <input id="doc-titular" type="text" placeholder="Você" autocomplete="off">
+      </label>
+    </div>
+
+    <label class="campo">
+      <span class="rotulo">Situação</span>
+      <select id="doc-situacao">
+        <option value="TENHO">Tenho, está guardado aqui</option>
+        <option value="FALTA_DIGITALIZAR">Tenho o papel, falta digitalizar</option>
+        <option value="A_RECUPERAR">Perdi — preciso recuperar</option>
+      </select>
+    </label>
+
+    <!-- Só aparece para o que se perdeu. É o que evita recomeçar do zero na
+         próxima vez que ele for atrás da segunda via. -->
+    <label class="campo oculto" id="campo-recuperar">
+      <span class="rotulo">Onde pedir a segunda via</span>
+      <textarea id="doc-recuperar" rows="3"
+        placeholder="Instituição, o que exigem, o que você já tentou…"></textarea>
+    </label>
+
+    <label class="campo">
+      <span class="rotulo">Vence em <i>(deixe vazio se não vence)</i></span>
+      <input id="doc-validade" type="date">
+    </label>
+
+    <h3>Números <button id="add-campo" class="mini">+ acrescentar</button></h3>
+    <p class="dica">O que os formulários pedem digitado. Um toque copia.</p>
+    <div id="doc-campos" class="campos"></div>
+
+    <h3>Arquivos</h3>
+    <p class="dica">Para digitalizar bonito, use o "Digitalizar documentos" do
+       seu celular — no iPhone fica no app Notas, no Android no Drive ou no
+       Keep. Ele endireita e devolve um PDF, e você traz por <b>Arquivo</b>.</p>
+    <div id="doc-arquivos" class="arquivos"></div>
+    <div class="botoes">
+      <button id="da-camera" class="secundario">Câmera</button>
+      <button id="da-galeria" class="secundario">Galeria</button>
+      <button id="do-arquivo" class="secundario">Arquivo</button>
+    </div>
+    <label class="opcao">
+      <input id="limpar-foto" type="checkbox" checked>
+      <span>Limpar a foto (preto e branco, mais legível)</span>
+    </label>
+
+    <input id="ent-camera" type="file" accept="image/*" capture="environment" class="escondido">
+    <input id="ent-galeria" type="file" accept="image/*" multiple class="escondido">
+    <input id="ent-arquivo" type="file" accept="image/*,application/pdf" multiple class="escondido">
+
+    <button id="salvar-doc" class="principal">Salvar</button>
+    <button id="apagar-doc" class="perigoso">Apagar este documento</button>
+  </div>
+</section>
+
+<!-- ======================= AJUSTES ======================= -->
+<section id="tela-ajustes" class="tela">
+  <header class="cabecalho">
+    <button id="voltar-ajustes" class="icone" aria-label="Voltar">←</button>
+    <h1>Cópia e senha</h1>
+  </header>
+
+  <div class="corpo">
+    <div id="cobranca" class="alerta oculto"></div>
+
+    <h3>Cópia de segurança</h3>
+    <p class="dica">É a razão de este app existir. O arquivo sai <b>cifrado</b>:
+       pode ir para o Drive, para o seu e-mail, para um pen drive. Sem a sua
+       senha ou o código, é ruído — então espalhe à vontade, em três lugares
+       diferentes se puder.</p>
+    <button id="exportar" class="principal">Tirar uma cópia agora</button>
+    <p class="dica" id="ultima-copia"></p>
+
+    <p class="dica"><b>Teste a cópia uma vez.</b> Abra o Selo numa janela
+       anônima, restaure o arquivo e veja seus documentos aparecerem. Cópia que
+       nunca foi testada não é cópia, é esperança.</p>
+    <button id="restaurar-aqui" class="secundario">Restaurar uma cópia neste aparelho</button>
+    <input id="arquivo-copia2" type="file" accept=".selo,application/json" class="escondido">
+
+    <h3>Senha</h3>
+    <label class="campo">
+      <span class="rotulo">Nova senha</span>
+      <input id="senha-troca" type="password" autocomplete="new-password">
+    </label>
+    <button id="trocar-senha" class="secundario">Trocar a senha</button>
+
+    <h3>Código de recuperação</h3>
+    <p class="dica">Perdeu a folha? Tire outra. A anterior deixa de valer na
+       hora, e seus documentos não são tocados.</p>
+    <button id="novo-codigo" class="secundario">Gerar um código novo</button>
+    <p class="codigo mono oculto" id="codigo-novo"></p>
+
+    <h3>Onde isto mora</h3>
+    <p class="dica" id="onde-mora">Tudo fica neste aparelho, cifrado. Nada sobe
+       para servidor nenhum.</p>
+  </div>
+</section>
+
+<script src="cofre.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
