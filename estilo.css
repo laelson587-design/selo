@@ -92,23 +92,32 @@ body {
 }
 .marca #dentes { transform-box: view-box; transform-origin: 50px 50px; }
 .marca #fechadura, .marca #anel { opacity: 1; transition: opacity 0.22s ease; }
-.marca #cadeado { opacity: 0; transition: opacity 0.22s ease 0.1s; }
+.marca #cadeado { opacity: 0; }
+/* O arco sobe para abrir, e passa um pouco do ponto antes de assentar — é o
+   salto do arco quando o cadeado solta. */
 .marca #arco {
-  transform-box: view-box; transform-origin: 42px 46px;
-  transition: transform 0.42s cubic-bezier(0.2, 0.8, 0.25, 1) 0.22s;
+  transform-box: view-box; transform-origin: 50px 48px;
+  transition: transform 0.44s cubic-bezier(0.34, 1.5, 0.5, 1) 0.2s;
 }
+/* Ao abrir, o corpo desce um pouco enquanto o arco sobe. Sem isso o arco
+   invadia os dentes e ficava boiando solto; assim o vão cresce e o cadeado
+   continua centrado no selo. */
+.marca #cadeado { transform-box: view-box; transform-origin: 50px 50px;
+                  transition: transform 0.44s cubic-bezier(0.34, 1.3, 0.5, 1) 0.2s,
+                              opacity 0.22s ease 0.1s; }
 
 /* Conferindo: laranja, girando sem fim — não dá para saber quanto falta. */
 .marca.pensando { color: var(--atencao); }
 .marca.pensando #dentes { animation: girar 1.4s linear infinite; }
 
-/* Abriu: verde, uma volta que desacelera, e o cadeado abrindo no lugar da
-   fechadura. O anel interno sai para dar espaço ao cadeado. */
+/* Abriu: verde, uma volta que desacelera, e o arco do cadeado subindo no lugar
+   da fechadura. O anel interno sai para dar espaço ao cadeado. */
 .marca.aberto { color: var(--bom); }
 .marca.aberto #dentes { animation: girar-e-parar 0.8s cubic-bezier(0.15, 0.75, 0.2, 1) forwards; }
 .marca.aberto #fechadura, .marca.aberto #anel { opacity: 0; }
 .marca.aberto #cadeado { opacity: 1; }
-.marca.aberto #arco { transform: rotate(-34deg); }
+.marca.aberto #arco { transform: translateY(-9px); }
+.marca.aberto #cadeado { transform: translateY(4px); }
 
 /* Não serviu: o cadeado aparece fechado, treme, e continua vermelho. O arco
    não se mexe — é essa quietude que diz "continua trancado". */

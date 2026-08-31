@@ -79,8 +79,9 @@ As cores fazem um **semáforo**, e é por isso que funcionam sem legenda:
 - **Vermelho parado** — trancado. É o repouso de um cofre, e dizê-lo em cor é
   mais honesto que um cadeado cinza. É também a marca igual à do ícone.
 - **Laranja, girando** — conferindo. Os dentes rodam enquanto a chave é derivada.
-- **Verde, e o cadeado abrindo** — deu certo. O arco gira no pé esquerdo, que é
-  onde um cadeado de verdade gira.
+- **Verde, e o cadeado abrindo** — deu certo. O arco **sobe** e solta do corpo,
+  que é o que um cadeado faz quando destranca. Girar para o lado ficava
+  estranho: cadeado não abre girando.
 - **Vermelho seco, cadeado fechado, tremendo** — a senha não serviu. O cadeado
   diz o que o tremor sozinho não dizia: continua trancado. Passado um segundo o
   selo volta ao repouso, com o campo limpo, pronto para a próxima tentativa.

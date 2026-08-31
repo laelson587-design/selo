@@ -34,12 +34,18 @@
             d="M50 34.5a8.2 8.2 0 0 0-3.8 15.5L43.4 64h13.2l-2.8-14A8.2 8.2 0 0 0 50 34.5z"/>
 
       <!-- O cadeado só aparece no veredito, e é ele que diz o que aconteceu:
-           fechado quando a senha não serviu, abrindo quando serviu. O arco gira
-           no pé esquerdo, que é onde um cadeado de verdade gira. -->
+           fechado quando a senha não serviu, aberto quando serviu.
+
+           Abrir é o arco SUBIR, e não girar para o lado. É o que um cadeado faz
+           de verdade quando destranca, e é o que se lê sem pensar. -->
       <g id="cadeado">
-        <path id="arco" d="M42 46V40a8 8 0 0 1 16 0v6" fill="none" stroke="currentColor"
+        <path id="arco" d="M43 48V42a7 7 0 0 1 14 0v6" fill="none" stroke="currentColor"
               stroke-width="5.5" stroke-linecap="round"/>
-        <rect id="corpo" x="36" y="46" width="28" height="24" rx="4.5" fill="currentColor"/>
+        <rect id="corpo" x="37" y="48" width="26" height="22" rx="4.5" fill="currentColor"/>
+        <!-- O furo da chave, vazado na cor do fundo. Sem ele o corpo é um
+             retângulo com alça; com ele é um cadeado, de primeira. -->
+        <path d="M50 54a3.4 3.4 0 0 0-1.6 6.4L47.6 65h4.8l-0.8-4.6A3.4 3.4 0 0 0 50 54z"
+              fill="var(--fundo)"/>
       </g>
     </svg>
     <h1>Selo</h1>
