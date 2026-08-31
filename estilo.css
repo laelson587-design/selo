@@ -224,6 +224,9 @@ button { font: inherit; cursor: pointer; }
 .opcao input { width: 20px; height: 20px; flex: 0 0 auto; accent-color: var(--marca); }
 
 .dica { margin: 6px 0 0; font-size: 13.5px; color: var(--fraco); }
+/* Texto explicando e campo logo abaixo estavam colados, e o rotulo do campo
+   parecia continuacao da frase. */
+.dica + .campo, .dica + .opcao { margin-top: 16px; }
 .dica b { color: var(--texto); }
 
 /* ---------- listas ---------- */

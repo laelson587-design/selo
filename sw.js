@@ -9,7 +9,7 @@
  * seguinte. Suba a VERSAO para forçar a limpeza imediata.
  */
 
-const VERSAO = "selo-v1";
+const VERSAO = "selo-v2";
 
 const CASCA = ["./", "./index.html", "./estilo.css", "./cofre.js", "./app.js",
                "./manifest.json", "./icone.svg", "./icone-192.png", "./icone-512.png"];
