@@ -31,7 +31,7 @@ aplicativo a que você deu permissão de fotos.
 A pergunta não é se você vai assumir o risco. Você já assumiu. É onde essas
 fotos vão morar. E um cofre fechado é melhor que uma gaveta aberta.
 
-## As duas portas
+## As portas do cofre
 
 O cofre é cifrado no próprio aparelho, com AES-GCM de 256 bits. Quem cifra é o
 WebCrypto do navegador — nada de criptografia caseira.
@@ -132,6 +132,11 @@ documentos você teria de perder **todas as cópias** ou **as duas chaves**.
 **Teste a cópia uma vez.** Abra o Selo numa janela anônima, restaure o arquivo e
 veja seus documentos voltarem. Cópia que nunca foi testada não é cópia, é
 esperança.
+
+**Trocou a senha? Tire uma cópia nova.** A cópia é uma fotografia do cofre e
+leva junto o jeito como a chave estava trancada — as cópias já feitas continuam
+abrindo pela senha antiga. Não é defeito, é o que uma cópia é, mas descobrir
+isso no aperto custa caro. O app cobra sozinho quando percebe.
 
 ## Digitalizar
 

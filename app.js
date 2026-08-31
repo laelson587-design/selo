@@ -532,6 +532,8 @@ async function exportarCopia() {
 }
 
 function marcarCopia() {
+  // A data da cópia passa a ser mais nova que a da troca de senha, e é assim
+  // que a cobrança se resolve sozinha.
   try { localStorage.setItem("selo.copiaEm", new Date().toISOString()); } catch (e) {}
   pintarAjustes();
   avisar("Cópia tirada. Guarde em mais de um lugar.");
@@ -591,18 +593,34 @@ async function pintarRosto() {
       "pela senha ou pelo código que os documentos voltam.";
 }
 
+function guardado(chave) {
+  try { return localStorage.getItem(chave); } catch (e) { return null; }
+}
+
 function pintarAjustes() {
-  let quando = null;
-  try { quando = localStorage.getItem("selo.copiaEm"); } catch (e) {}
-  const el = $("#ultima-copia");
-  el.textContent = quando
+  const quando = guardado("selo.copiaEm");
+  const trocada = guardado("selo.senhaTrocadaEm");
+
+  $("#ultima-copia").textContent = quando
     ? "Última cópia: " + dataCurta(quando)
     : "Você ainda não tirou nenhuma cópia.";
 
+  // A cópia é uma fotografia do cofre, e leva junto o jeito como a chave
+  // estava trancada. Trocar a senha depois não alcança as cópias já feitas:
+  // elas continuam abrindo pela senha velha. Não é defeito, é o que uma cópia
+  // é — mas descobrir isso na hora do aperto custa caro.
+  const copiaVelhaDeSenha = !!(quando && trocada && trocada > quando);
+
   const dias = quando ? -diasAte(quando.slice(0, 10)) : 999;
   const cobra = $("#cobranca");
-  cobra.classList.toggle("oculto", dias < 30);
-  if (dias >= 30) {
+  cobra.classList.toggle("oculto", !(dias >= 30 || copiaVelhaDeSenha));
+
+  if (copiaVelhaDeSenha) {
+    cobra.innerHTML = `<b>Sua cópia ainda abre com a senha antiga</b>` +
+      `Você trocou a senha em ${dataCurta(trocada)}, e a última cópia é de ` +
+      `${dataCurta(quando)}. Tire uma nova, senão vai precisar lembrar da senha ` +
+      `velha justamente no dia em que precisar da cópia.`;
+  } else if (dias >= 30) {
     cobra.innerHTML = quando
       ? `<b>Sua cópia está velha</b>Faz ${dias} dias. Documento que entrou depois disso não está em lugar nenhum além deste aparelho.`
       : `<b>Você ainda não tem cópia</b>Enquanto não tirar uma, perder o celular é perder tudo de novo.`;
@@ -754,7 +772,9 @@ function ligar() {
     try {
       await trocarSenha(nova);
       $("#senha-troca").value = "";
-      avisar("Senha trocada. O código de recuperação continua o mesmo.");
+      try { localStorage.setItem("selo.senhaTrocadaEm", new Date().toISOString()); } catch (e) {}
+      pintarAjustes();
+      avisar("Senha trocada. Tire uma cópia nova — a antiga ainda abre pela senha velha.");
     } catch (e) { avisar(e.message); }
   });
 
