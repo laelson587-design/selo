@@ -141,6 +141,7 @@ async function pintarTranca() {
   const tem = await existeCofre();
   $("#passo-criar").classList.toggle("oculto", tem);
   $("#passo-abrir").classList.toggle("oculto", !tem);
+  $("#abrir-rosto").classList.toggle("oculto", !(tem && await biometriaLigada()));
   // O caminho de volta tem de estar à vista justamente quando não há cofre:
   // é o aparelho novo, ou o navegador que apagou tudo.
   $("#passo-restaurar").classList.toggle("oculto", tem);
@@ -193,6 +194,30 @@ async function abrir(comCodigo) {
   // Esta pausa é de propósito: é o tempo de o selo ficar verde e o cadeado
   // abrir. Sem ela a confirmação seria pintada e apagada no mesmo quadro, e
   // quem digitou a senha certa não veria o app dizer que sim.
+  await new Promise((f) => setTimeout(f, 820));
+  await entrar();
+}
+
+/**
+ * Abrir pelo rosto. Cancelar não é erro — é o caso mais comum de todos, alguém
+ * que preferiu digitar a senha — e por isso ele volta ao repouso calado, sem
+ * cadeado vermelho nem recado.
+ */
+async function abrirPeloRosto() {
+  selo("pensando");
+  let ok = false;
+  try {
+    ok = await abrirComBiometria();
+  } catch (e) {
+    selo("");
+    $("#senha").focus();
+    return;
+  }
+  if (!ok) {
+    selo("errou", () => $("#senha").focus());
+    return avisar("O aparelho não reconheceu. Use a senha.");
+  }
+  selo("aberto");
   await new Promise((f) => setTimeout(f, 820));
   await entrar();
 }
@@ -545,6 +570,27 @@ async function restaurarDe(arquivo, jaEstouDentro) {
 
 /* -------------------------------------------------------------- ajustes */
 
+/**
+ * A seção do rosto nos ajustes. Ela some inteira onde não dá para fazer a coisa
+ * direito — e o texto diz o que ela é: uma porta mais rápida, não mais forte.
+ */
+async function pintarRosto() {
+  const podeAqui = await biometriaPossivel();
+  $("#bloco-rosto").classList.toggle("oculto", !podeAqui);
+  if (!podeAqui) return;
+
+  const ligada = await biometriaLigada();
+  $("#ligar-rosto").classList.toggle("oculto", ligada);
+  $("#desligar-rosto").classList.toggle("oculto", !ligada);
+  $("#rosto-explica").innerHTML = ligada
+    ? "Ligado neste aparelho. É uma porta <b>mais rápida</b>, não mais forte — a " +
+      "senha continua sendo o que abre o cofre, e é ela que vai junto com a cópia " +
+      "para um celular novo."
+    : "Abre o cofre com o rosto ou a digital, em vez de digitar a senha. Vale " +
+      "<b>só neste aparelho</b> e não substitui a senha: se o celular acabar, é " +
+      "pela senha ou pelo código que os documentos voltam.";
+}
+
 function pintarAjustes() {
   let quando = null;
   try { quando = localStorage.getItem("selo.copiaEm"); } catch (e) {}
@@ -600,7 +646,11 @@ function ligar() {
   $("#trancar").addEventListener("click", () => { trancarTudo(); avisar("Trancado."); });
   $("#busca").addEventListener("input", pintarLista);
   $("#novo").addEventListener("click", novoDocumento);
-  $("#ir-ajustes").addEventListener("click", () => { pintarAjustes(); irPara("ajustes"); });
+  $("#ir-ajustes").addEventListener("click", () => {
+    pintarAjustes();
+    pintarRosto();
+    irPara("ajustes");
+  });
   $("#voltar-ajustes").addEventListener("click", () => irPara("lista"));
 
   $("#lista").addEventListener("click", (e) => {
@@ -669,6 +719,24 @@ function ligar() {
     await pintarLista();
     irPara("lista");
     avisar("Apagado.");
+  });
+
+  $("#abrir-rosto").addEventListener("click", abrirPeloRosto);
+
+  $("#ligar-rosto").addEventListener("click", async () => {
+    try {
+      await ligarBiometria("Cofre do Selo");
+      await pintarRosto();
+      avisar("Pronto. A senha continua valendo, e continua sendo ela que abre em outro aparelho.");
+    } catch (e) {
+      avisar(e.message || "Não deu para ligar.");
+    }
+  });
+
+  $("#desligar-rosto").addEventListener("click", async () => {
+    await desligarBiometria();
+    await pintarRosto();
+    avisar("Desligado. Daqui em diante, só senha ou código.");
   });
 
   $("#exportar").addEventListener("click", exportarCopia);

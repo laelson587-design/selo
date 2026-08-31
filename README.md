@@ -40,12 +40,15 @@ Só que isso cria um risco novo: esquecer a senha seria perder tudo. Num app
 feito para quem perde coisas, ter como único ponto de falha *"lembre-se desta
 frase"* seria irônico até o absurdo.
 
-Por isso são **duas portas independentes** para a mesma chave:
+Por isso são **portas independentes** para a mesma chave:
 
 - **A senha**, que você digita todo dia.
 - **O código de recuperação**, sorteado uma vez, mostrado uma vez, para imprimir.
+- **O rosto ou a digital**, se você ligar — e só neste aparelho.
 
-Qualquer uma abre. Você precisa perder as duas para perder o cofre.
+Qualquer uma abre. Você precisa perder todas para perder o cofre. As duas
+primeiras são as que sustentam tudo: viajam na cópia e funcionam em qualquer
+aparelho.
 
 E o código sozinho **não abre nada**: sem o arquivo do cofre, é um monte de
 letras. Por isso ele pode ficar impresso na casa de outra pessoa, sem risco.
@@ -62,6 +65,28 @@ depois de destrancar. Isso vale igual para o banco e para o WhatsApp.
 
 Uma frase de quatro ou cinco palavras que só faça sentido para você vale mais do
 que qualquer coisa que o código faça.
+
+## Abrir com o rosto
+
+É a terceira porta, e ela é **conveniência, não segurança a mais**: mais rápida,
+não mais forte. Mora só neste aparelho, não vai na cópia, e nunca substitui a
+senha — celular novo se abre pela senha ou pelo código, como sempre.
+
+O que faz ela ser de verdade está numa parte do WebAuthn chamada `prf`. Sem ela,
+o navegador só responde *"sim, é ele"* — e um app que destrancasse com base
+nessa resposta teria de guardar a chave em claro, esperando o "sim". Aí a
+biometria seria teatro: quem pegasse o arquivo abriria sem rosto nenhum.
+
+Com o `prf`, o aparelho devolve um **segredo**, e é ele que destranca uma
+terceira cópia da chave-mestra. Sem o rosto não existe segredo, e sem o segredo
+não existe chave.
+
+Por isso, **onde o `prf` não existir o botão não aparece** — é melhor não
+oferecer do que oferecer uma tranca de mentira. Ligar pede o reconhecimento duas
+vezes: a primeira cadastra, a segunda é onde o aparelho entrega o segredo.
+
+Precisa de `https` ou `localhost`, e de um domínio de verdade — o WebAuthn
+recusa endereço numérico como `127.0.0.1`.
 
 ## O selo, e por que ele se mexe
 
@@ -171,8 +196,6 @@ subir.**
 
 - **Sincronia automática.** Hoje a cópia é manual. Numa segunda etapa vira envio
   cifrado antes de sair, para o servidor guardar um borrão.
-- **Abrir por reconhecimento facial.** Cabe como uma terceira porta, ao lado da
-  senha e do código — o desenho já comporta, falta implementar.
 - **Ler o número da foto sozinho.** Se fosse por serviço externo, seria entregar
   o documento; no aparelho, é pesado. Só se fizer falta.
 - **Endireitar a perspectiva.** O escâner do celular já resolve.

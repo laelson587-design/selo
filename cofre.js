@@ -3,19 +3,23 @@
  * Aqui mora a única coisa deste app que não pode estar errada: os documentos
  * saem daqui cifrados e voltam inteiros, ou não saem.
  *
- * O desenho tem duas portas para o mesmo cofre, e isso é de propósito. Um app
- * feito para quem já perdeu documento não pode ter como único ponto de falha
- * "lembre-se desta frase".
+ * O desenho tem portas independentes para o mesmo cofre, e isso é de
+ * propósito. Um app feito para quem já perdeu documento não pode ter como
+ * único ponto de falha "lembre-se desta frase".
  *
- *   senha ────┐
- *             ├──► abrem a chave-mestra ──► abre os documentos
- *   código ───┘
+ *   senha ─────┐
+ *   código ────┼──► abrem a chave-mestra ──► abrem os documentos
+ *   rosto ─────┘    (o rosto só onde o aparelho souber guardar segredo)
  *
  * A chave-mestra é sorteada uma vez e nunca sai daqui. O que fica guardado são
- * duas cópias dela, cada uma trancada por um lado. Perder as duas é o único
- * jeito de perder o cofre — e o código de recuperação sozinho, sem o arquivo,
- * é um monte de letras que não abre nada. Por isso ele pode ficar impresso na
- * casa de outra pessoa sem risco nenhum.
+ * cópias dela, cada uma trancada por um lado. Perder todas é o único jeito de
+ * perder o cofre — e o código de recuperação sozinho, sem o arquivo, é um monte
+ * de letras que não abre nada. Por isso ele pode ficar impresso na casa de
+ * outra pessoa sem risco nenhum.
+ *
+ * As duas primeiras são as que sustentam tudo: viajam na cópia e funcionam em
+ * qualquer aparelho. A do rosto é conveniência, mora só neste aparelho e nunca
+ * substitui as outras.
  *
  * Nada de criptografia caseira: quem cifra é o WebCrypto, que já vem no
  * navegador. AES-GCM de 256 bits para os dados, PBKDF2 para transformar a
@@ -310,6 +314,141 @@ async function trocarCodigo() {
   return codigo;
 }
 
+/* ------------------------------------------------------- a terceira porta
+ *
+ * Rosto ou digital. É a mesma ideia das outras duas: mais uma cópia da
+ * chave-mestra, trancada por mais um segredo. O que muda é de onde o segredo
+ * vem — do próprio aparelho, depois que ele reconhece quem está ali.
+ *
+ * A parte que importa está no `prf`. Sem ela, o WebAuthn só responde "sim, é
+ * ele" — e um app que destrancasse com base nessa resposta teria de guardar a
+ * chave em claro, esperando o "sim". Aí a biometria seria teatro: quem pegasse
+ * o arquivo abriria sem rosto nenhum. Com o `prf`, o aparelho devolve um
+ * SEGREDO, e sem ele não existe chave para destrancar. Por isso, onde o `prf`
+ * não existir, o botão não aparece — é melhor não oferecer do que oferecer uma
+ * tranca de mentira.
+ *
+ * Ela é conveniência, não segurança a mais: uma porta mais rápida, não mais
+ * forte. E morre com o aparelho — celular novo se abre pela senha ou pelo
+ * código, como sempre.
+ */
+
+const CHAVE_BIO = "biometria";
+
+/** O aparelho tem leitor de rosto ou digital que o navegador saiba usar? */
+async function biometriaPossivel() {
+  if (typeof window === "undefined" || !window.PublicKeyCredential) return false;
+  try {
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  } catch (e) {
+    return false;
+  }
+}
+
+async function biometriaLigada() {
+  return !!(await deposito.pegar("cofre", CHAVE_BIO));
+}
+
+/** Do segredo do aparelho para uma chave AES. HKDF porque a entrada já é
+    aleatória de verdade — esticar com PBKDF2 não acrescentaria nada. */
+async function chaveDeSegredoForte(bytes, proposito) {
+  const material = await cripto.subtle.importKey("raw", bytes, "HKDF", false, ["deriveKey"]);
+  return cripto.subtle.deriveKey(
+    { name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0), info: daTexto(proposito) },
+    material, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+
+/** Pede o rosto e devolve o segredo que o aparelho guarda para este cofre. */
+async function segredoDoAparelho(credId, sal) {
+  const r = await navigator.credentials.get({
+    publicKey: {
+      challenge: sortear(32),
+      allowCredentials: [{ type: "public-key", id: credId }],
+      userVerification: "required",
+      extensions: { prf: { eval: { first: sal } } },
+      timeout: 60000,
+    },
+  });
+  const ext = r && r.getClientExtensionResults();
+  if (!ext || !ext.prf || !ext.prf.results || !ext.prf.results.first) return null;
+  return new Uint8Array(ext.prf.results.first);
+}
+
+/**
+ * Liga a tranca por rosto. Pede o reconhecimento duas vezes de propósito: a
+ * primeira cadastra, e a segunda é onde o aparelho entrega o segredo. Não dá
+ * para juntar as duas em todo navegador, e pedir duas vezes uma vez só na vida
+ * é melhor que ligar isto onde não funciona.
+ */
+async function ligarBiometria(nome) {
+  if (!mestra) throw new Error("O cofre está trancado.");
+
+  const cred = await navigator.credentials.create({
+    publicKey: {
+      challenge: sortear(32),
+      rp: { name: "Selo" },
+      user: { id: sortear(16), name: nome || "cofre", displayName: nome || "Cofre do Selo" },
+      pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+      authenticatorSelection: {
+        authenticatorAttachment: "platform",
+        residentKey: "required",
+        userVerification: "required",
+      },
+      extensions: { prf: {} },
+      timeout: 60000,
+    },
+  });
+  if (!cred) throw new Error("O aparelho não cadastrou.");
+
+  const ext = cred.getClientExtensionResults();
+  if (!ext.prf || !ext.prf.enabled) {
+    throw new Error("Este aparelho reconhece você, mas não sabe guardar um segredo " +
+      "para o cofre. A tranca por rosto não dá para ligar aqui — a senha continua.");
+  }
+
+  const credId = new Uint8Array(cred.rawId);
+  const sal = sortear(32);
+  const segredo = await segredoDoAparelho(credId, sal);
+  if (!segredo) throw new Error("O aparelho não devolveu o segredo. Tente de novo.");
+
+  const cru = new Uint8Array(await cripto.subtle.exportKey("raw", mestra));
+  await deposito.por("cofre", CHAVE_BIO, {
+    credId: praBase64(credId),
+    sal: praBase64(sal),
+    mestraPorBio: praBase64(
+      await cifrar(await chaveDeSegredoForte(segredo, "selo-biometria"), cru)),
+    ligadoEm: new Date().toISOString(),
+  });
+  cru.fill(0);
+  segredo.fill(0);
+  return true;
+}
+
+async function desligarBiometria() {
+  await deposito.tirar("cofre", CHAVE_BIO);
+}
+
+/** Como abrirCofre, mas a porta é o rosto. Devolve true, false ou lança. */
+async function abrirComBiometria() {
+  const b = await deposito.pegar("cofre", CHAVE_BIO);
+  if (!b) return false;
+
+  const segredo = await segredoDoAparelho(daBase64(b.credId), daBase64(b.sal));
+  if (!segredo) return false;
+
+  const chave = await chaveDeSegredoForte(segredo, "selo-biometria");
+  segredo.fill(0);
+  let cru;
+  try {
+    cru = await decifrar(chave, daBase64(b.mestraPorBio));
+  } catch (e) {
+    return false;
+  }
+  mestra = await cripto.subtle.importKey("raw", cru, { name: "AES-GCM" }, true,
+    ["encrypt", "decrypt"]);
+  return true;
+}
+
 /* ----------------------------------------------------------- documentos */
 
 function agora() { return new Date().toISOString(); }
@@ -410,6 +549,8 @@ const MARCA = "selo.cofre";
 async function exportar() {
   const c = await deposito.pegar("cofre", CHAVE_COFRE);
   if (!c) throw new Error("Não existe cofre neste aparelho.");
+  // A tranca por rosto fica de fora de propósito: ela é deste aparelho e não
+  // abriria em nenhum outro. Levá-la seria carregar uma porta emparedada.
   return {
     marca: MARCA,
     versao: 1,
@@ -450,6 +591,7 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     usarDeposito, depositoNaMemoria,
     criarCofre, abrirCofre, trancar, estaAberto, existeCofre, trocarSenha, trocarCodigo,
+    biometriaPossivel, biometriaLigada, ligarBiometria, desligarBiometria, abrirComBiometria,
     guardarDocumento, lerDocumento, listarDocumentos, apagarDocumento,
     guardarArquivo, lerArquivo,
     exportar, restaurar,
