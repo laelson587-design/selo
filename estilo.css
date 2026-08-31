@@ -76,32 +76,47 @@ body {
 .tranca h1 {
   margin: 0 0 22px; font-size: 30px; letter-spacing: -0.03em; text-align: center;
 }
-/* O selo, e os três estados dele.
+/* O selo, e os quatro estados dele.
  *
- * Vermelho é o normal aqui: trancado é o estado de repouso de um cofre, e
- * dizê-lo em cor é mais honesto que um cadeadinho cinza. O erro se distingue
- * do repouso pelo tremor, não por outra cor — senão vermelho quereria dizer
- * duas coisas.
+ * As cores fazem um semáforo, e é por isso que funcionam sem legenda:
+ * vermelho parado, laranja trabalhando, verde liberado. Ninguém precisa
+ * aprender isso.
+ *
+ * No repouso a marca é a mesma do ícone da tela de início — selo e fechadura.
+ * O cadeado só entra no veredito, porque é ali que ele tem o que dizer:
+ * fechado quando a senha não serviu, abrindo quando serviu.
  */
 .marca {
-  display: block; width: 76px; height: 76px; margin: 8px auto 6px;
-  color: var(--ruim); transition: color 0.45s ease;
+  display: block; width: 84px; height: 84px; margin: 8px auto 6px;
+  color: var(--ruim); transition: color 0.4s ease;
 }
 .marca #dentes { transform-box: view-box; transform-origin: 50px 50px; }
-.marca #visto { opacity: 0; }
-.marca #fechadura { opacity: 1; transition: opacity 0.3s ease; }
+.marca #fechadura, .marca #anel { opacity: 1; transition: opacity 0.22s ease; }
+.marca #cadeado { opacity: 0; transition: opacity 0.22s ease 0.1s; }
+.marca #arco {
+  transform-box: view-box; transform-origin: 42px 46px;
+  transition: transform 0.42s cubic-bezier(0.2, 0.8, 0.25, 1) 0.22s;
+}
 
-/* Conferindo: gira devagar, sem fim, porque não dá para saber quanto falta. */
-.marca.pensando #dentes { animation: girar 1.5s linear infinite; }
+/* Conferindo: laranja, girando sem fim — não dá para saber quanto falta. */
+.marca.pensando { color: var(--atencao); }
+.marca.pensando #dentes { animation: girar 1.4s linear infinite; }
 
-/* Abriu: verde, uma volta rápida que desacelera, e a fechadura dá lugar ao
-   visto — o selo deixa de trancar e passa a certificar. */
+/* Abriu: verde, uma volta que desacelera, e o cadeado abrindo no lugar da
+   fechadura. O anel interno sai para dar espaço ao cadeado. */
 .marca.aberto { color: var(--bom); }
-.marca.aberto #dentes { animation: girar-e-parar 0.85s cubic-bezier(0.15, 0.75, 0.2, 1) forwards; }
-.marca.aberto #fechadura { opacity: 0; }
-.marca.aberto #visto { opacity: 1; transition: opacity 0.28s ease 0.3s; }
+.marca.aberto #dentes { animation: girar-e-parar 0.8s cubic-bezier(0.15, 0.75, 0.2, 1) forwards; }
+.marca.aberto #fechadura, .marca.aberto #anel { opacity: 0; }
+.marca.aberto #cadeado { opacity: 1; }
+.marca.aberto #arco { transform: rotate(-34deg); }
 
-.marca.errou { animation: tremer 0.42s ease; }
+/* Não serviu: o cadeado aparece fechado, treme, e continua vermelho. O arco
+   não se mexe — é essa quietude que diz "continua trancado". */
+/* O vermelho do erro entra seco, sem transição: vindo do laranja, a passagem
+   suave chegava desbotada bem no quadro em que ela precisa ser lida. */
+.marca.errou { color: var(--ruim); transition: color 0s; animation: tremer 0.45s ease; }
+.marca.errou #fechadura, .marca.errou #anel { opacity: 0; }
+.marca.errou #cadeado { opacity: 1; }
 
 @keyframes girar { to { transform: rotate(360deg); } }
 @keyframes girar-e-parar { from { transform: rotate(0); } to { transform: rotate(396deg); } }
@@ -111,9 +126,11 @@ body {
   80% { transform: translateX(-3px); }
 }
 
-/* Quem pediu menos movimento continua tendo a cor, que é o que informa. */
+/* Quem pediu menos movimento continua tendo a cor e o cadeado, que é o que
+   informa — some só o que é movimento. */
 @media (prefers-reduced-motion: reduce) {
   .marca, .marca #dentes { animation: none !important; }
+  .marca #arco { transition: none; }
 }
 
 .titulo-forte { margin: 0 0 6px; font-size: 18px; font-weight: 700; }

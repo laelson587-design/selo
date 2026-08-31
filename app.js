@@ -39,22 +39,33 @@ let relogioAviso = null;
 
 /* ------------------------------------------------------------------ o selo */
 
+let relogioSelo = null;
+
 /**
  * O estado do selo na tela da tranca: "" (trancado), "pensando" (conferindo),
  * "aberto" (deu certo) ou "errou".
  *
- * O tremor precisa ser retirado à mão depois de tocar, senão só aconteceria
- * uma vez — a animação não reinicia sozinha com a classe já posta.
+ * O erro se desfaz sozinho: mostra o cadeado fechado o tempo de ser lido e
+ * volta ao repouso, pronto para a próxima tentativa. Deixar o cadeado na tela
+ * seria acusar a pessoa de um erro que ela já entendeu.
  */
-function selo(estado) {
+function selo(estado, aoVoltar) {
   const m = $("#marca");
+  clearTimeout(relogioSelo);
   m.classList.remove("pensando", "aberto", "errou");
   if (!estado) return;
-  if (estado === "errou") {
-    // força o navegador a recalcular antes de repor a classe
-    void m.offsetWidth;
-  }
+
+  // Sem isto o tremor só aconteceria na primeira vez: a animação não recomeça
+  // com a classe já posta, e o navegador precisa recalcular no meio.
+  if (estado === "errou") void m.offsetWidth;
   m.classList.add(estado);
+
+  if (estado === "errou") {
+    relogioSelo = setTimeout(() => {
+      m.classList.remove("errou");
+      if (aoVoltar) aoVoltar();
+    }, 1000);
+  }
 }
 
 /* ------------------------------------------------------------- utilidades */
@@ -140,7 +151,10 @@ async function pintarTranca() {
 async function criar() {
   const s1 = $("#senha-nova").value;
   const s2 = $("#senha-nova2").value;
-  if (s1 !== s2) { selo("errou"); return avisar("As duas senhas não são iguais."); }
+  if (s1 !== s2) {
+    selo("errou", () => $("#senha-nova2").focus());
+    return avisar("As duas senhas não são iguais.");
+  }
   selo("pensando");
   try {
     const codigo = await criarCofre(s1);
@@ -167,16 +181,19 @@ async function abrir(comCodigo) {
     return avisar(e.message);
   }
   if (!ok) {
-    selo("errou");
+    // Volta ao começo: o campo limpo e o cursor nele. Senha errada quase nunca
+    // é um caractere trocado — é a senha errada inteira.
+    const campo = comCodigo ? "#codigo-entrada" : "#senha";
+    selo("errou", () => { $(campo).value = ""; $(campo).focus(); });
     return avisar(comCodigo ? "Esse código não abre." : "Senha errada.");
   }
 
   selo("aberto");
   $("#senha").value = $("#codigo-entrada").value = "";
-  // A meia dúzia de décimos aqui é de propósito: é o tempo de o selo virar
-  // verde e a fechadura virar visto. Sem essa pausa, a confirmação seria
-  // pintada e apagada no mesmo quadro, e ninguém veria.
-  await new Promise((f) => setTimeout(f, 620));
+  // Esta pausa é de propósito: é o tempo de o selo ficar verde e o cadeado
+  // abrir. Sem ela a confirmação seria pintada e apagada no mesmo quadro, e
+  // quem digitou a senha certa não veria o app dizer que sim.
+  await new Promise((f) => setTimeout(f, 820));
   await entrar();
 }
 

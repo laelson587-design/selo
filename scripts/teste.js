@@ -73,24 +73,27 @@ async function main() {
   // ------------------------------------------------------------------ 3
   console.log("\n3. o documento, e o que fica legível");
   const doc = await cofre.guardarDocumento({
-    titulo: "Diploma",
+    titulo: "Diploma de Bacharel em Sistemas",
     tipo: "DIPLOMA",
     situacao: "A_RECUPERAR",
     ondeRecuperar: "Secretaria da faculdade — pedir segunda via",
-    campos: { registro: "123456" },
+    campos: { registro: "9087654321234" },
   });
   ok("nasceu com id", !!doc.id);
   ok("guardou a situação", doc.situacao === "A_RECUPERAR");
 
   const lido = await cofre.lerDocumento(doc.id);
-  ok("volta igual", lido.titulo === "Diploma" && lido.campos.registro === "123456");
+  ok("volta igual", lido.titulo === "Diploma de Bacharel em Sistemas" && lido.campos.registro === "9087654321234");
   ok("guardou onde recuperar", lido.ondeRecuperar.includes("segunda via"));
 
   const pacoteEspiado = await cofre.exportar();
   const cru = JSON.stringify(pacoteEspiado);
-  ok("o título NÃO fica legível no que é guardado", !cru.includes("Diploma"), "vazou");
-  ok("o número NÃO fica legível", !cru.includes("123456"), "vazou");
-  ok("nem o caminho da segunda via", !cru.includes("faculdade"), "vazou");
+  // As marcas sao compridas de proposito: um punhado de letras sai por acaso
+  // dentro de um base64 grande, e o teste acusaria vazamento que nao existe.
+  ok("o título NÃO fica legível no que é guardado",
+    !cru.includes("Diploma de Bacharel em Sistemas"), "vazou");
+  ok("o número NÃO fica legível", !cru.includes("9087654321234"), "vazou");
+  ok("nem o caminho da segunda via", !cru.includes("Secretaria da faculdade"), "vazou");
 
   // ------------------------------------------------------------------ 4
   console.log("\n4. o arquivo, byte a byte");
@@ -125,7 +128,7 @@ async function main() {
   ok("restaurou com a senha", (await cofre.restaurar(pacote, SENHA)) === true);
   ok("abriu junto", cofre.estaAberto() === true);
   const depois = await cofre.listarDocumentos();
-  ok("o documento veio", depois.length === 1 && depois[0].titulo === "Diploma");
+  ok("o documento veio", depois.length === 1 && depois[0].titulo === "Diploma de Bacharel em Sistemas");
   const arqDepois = await cofre.lerArquivo(depois[0].arquivos[0].id);
   ok("o arquivo veio inteiro",
     arqDepois.length === originais.length && originais.every((b, i) => arqDepois[i] === b));

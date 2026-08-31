@@ -74,16 +74,22 @@ leva de meio a um segundo, de propósito: a derivação da chave é lenta porque
 isso que torna caro tentar senha por senha. Sem sinal nenhum, esse tempo
 pareceria o app travado.
 
-- **Vermelho parado** — trancado. É o repouso de um cofre, e dizê-lo em cor é
-  mais honesto que um cadeado cinza.
-- **Girando** — conferindo. Os dentes rodam enquanto a chave é derivada.
-- **Verde, com o visto no lugar da fechadura** — abriu. O selo deixa de trancar
-  e passa a certificar.
-- **Tremendo, ainda vermelho** — senha errada. O erro se distingue do repouso
-  pelo movimento, e não por outra cor: vermelho já quer dizer uma coisa só.
+As cores fazem um **semáforo**, e é por isso que funcionam sem legenda:
 
-Quem tem "menos movimento" ligado no aparelho recebe só a cor, que é o que
-informa.
+- **Vermelho parado** — trancado. É o repouso de um cofre, e dizê-lo em cor é
+  mais honesto que um cadeado cinza. É também a marca igual à do ícone.
+- **Laranja, girando** — conferindo. Os dentes rodam enquanto a chave é derivada.
+- **Verde, e o cadeado abrindo** — deu certo. O arco gira no pé esquerdo, que é
+  onde um cadeado de verdade gira.
+- **Vermelho seco, cadeado fechado, tremendo** — a senha não serviu. O cadeado
+  diz o que o tremor sozinho não dizia: continua trancado. Passado um segundo o
+  selo volta ao repouso, com o campo limpo, pronto para a próxima tentativa.
+
+O cadeado só aparece no veredito. Em repouso a tela mostra a mesma marca do
+ícone da tela de início — assim as duas combinam.
+
+Quem tem "menos movimento" ligado no aparelho recebe a cor e o cadeado, que é o
+que informa; some só o movimento.
 
 Os PNGs de 192 e 512 saem do `icone.svg` com `node scripts/icone.js` — quem
 rasteriza é o Chrome que já está na máquina, sem instalar nada.
