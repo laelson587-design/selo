@@ -1,6 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="22" fill="#0f1115"/>
-  <circle cx="50" cy="50" r="30" fill="none" stroke="#7aa2ff" stroke-width="7"/>
-  <path d="M39 50l8 8 15-17" fill="none" stroke="#7aa2ff" stroke-width="7"
-        stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
+  <!-- O ícone do Selo: o selo lacrado.
+
+       Dentes de selo oficial por fora — isto é documento — e um buraco de
+       fechadura no meio — e ele está trancado. As duas metades do nome numa
+       marca só.
+
+       São dez dentes grossos, e não dezoito finos: a 48px, que é o tamanho em
+       que ele vive na tela de início, os finos viravam um halo borrado. A
+       fechadura é grande pelo mesmo motivo — é ela que conta a história.
+
+       Tudo cabe dentro de 72% do quadrado, que é o que sobra depois do corte
+       redondo que o Android faz em ícone "maskable".
+
+       Fundo azul-marinho de propósito: o Tino é anel colorido sobre branco, e
+       os dois moram lado a lado na mesma tela. -->
+
+  <rect width="100" height="100" fill="#16233f"/>
+
+  <g fill="none" stroke="#7aa2ff">
+    <circle cx="50" cy="50" r="31" stroke-width="10" stroke-dasharray="8 11.48"/>
+    <circle cx="50" cy="50" r="23.5" stroke-width="4"/>
+  </g>
+
+  <path d="M50 34.5a8.2 8.2 0 0 0-3.8 15.5L43.4 64h13.2l-2.8-14A8.2 8.2 0 0 0 50 34.5z"
+        fill="#7aa2ff"/>
 </svg>

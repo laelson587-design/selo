@@ -8,7 +8,8 @@
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="estilo.css">
 <meta name="theme-color" content="#0f1115">
-<link rel="icon" href="icone.svg" type="image/svg+xml">
+<link rel="icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
 </head>
 <body>
 
@@ -17,10 +18,19 @@
 <!-- ======================= A TRANCA ======================= -->
 <section id="tela-tranca" class="tela ativa">
   <div class="tranca">
-    <svg class="marca" viewBox="0 0 100 100" aria-hidden="true">
-      <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="7"/>
-      <path d="M38 50l9 9 16-18" fill="none" stroke="currentColor"
-            stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- O selo não é enfeite aqui: conferir a senha leva de meio a um segundo
+         de propósito, e sem sinal nenhum o app parece travado nesse tempo. Os
+         dentes girando são o recibo de que ele está trabalhando; o verde no fim
+         é a confirmação, e ela chega antes da tela trocar. -->
+    <svg id="marca" class="marca" viewBox="0 0 100 100" aria-hidden="true">
+      <g fill="none" stroke="currentColor">
+        <circle id="dentes" cx="50" cy="50" r="31" stroke-width="10" stroke-dasharray="8 11.48"/>
+        <circle cx="50" cy="50" r="23.5" stroke-width="4"/>
+      </g>
+      <path id="fechadura" fill="currentColor"
+            d="M50 34.5a8.2 8.2 0 0 0-3.8 15.5L43.4 64h13.2l-2.8-14A8.2 8.2 0 0 0 50 34.5z"/>
+      <path id="visto" d="M39 50.5l8.5 8.5 16-18" fill="none" stroke="currentColor"
+            stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <h1>Selo</h1>
 

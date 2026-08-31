@@ -37,6 +37,26 @@ let docAtual = null;      // o documento aberto na tela, ainda não salvo
 let relogioTranca = null;
 let relogioAviso = null;
 
+/* ------------------------------------------------------------------ o selo */
+
+/**
+ * O estado do selo na tela da tranca: "" (trancado), "pensando" (conferindo),
+ * "aberto" (deu certo) ou "errou".
+ *
+ * O tremor precisa ser retirado à mão depois de tocar, senão só aconteceria
+ * uma vez — a animação não reinicia sozinha com a classe já posta.
+ */
+function selo(estado) {
+  const m = $("#marca");
+  m.classList.remove("pensando", "aberto", "errou");
+  if (!estado) return;
+  if (estado === "errou") {
+    // força o navegador a recalcular antes de repor a classe
+    void m.offsetWidth;
+  }
+  m.classList.add(estado);
+}
+
 /* ------------------------------------------------------------- utilidades */
 
 function avisar(texto) {
@@ -100,6 +120,7 @@ function trancarTudo() {
   $("#codigo-entrada").value = "";
   $("#passo-recuperar").classList.add("oculto");
   $("#lista").innerHTML = "";
+  selo("");
   irPara("tranca");
 }
 
@@ -119,14 +140,17 @@ async function pintarTranca() {
 async function criar() {
   const s1 = $("#senha-nova").value;
   const s2 = $("#senha-nova2").value;
-  if (s1 !== s2) return avisar("As duas senhas não são iguais.");
+  if (s1 !== s2) { selo("errou"); return avisar("As duas senhas não são iguais."); }
+  selo("pensando");
   try {
     const codigo = await criarCofre(s1);
+    selo("aberto");
     $("#codigo").textContent = codigo;
     $("#passo-criar").classList.add("oculto");
     $("#passo-codigo").classList.remove("oculto");
     $("#senha-nova").value = $("#senha-nova2").value = "";
   } catch (e) {
+    selo("errou");
     avisar(e.message);
   }
 }
@@ -134,14 +158,25 @@ async function criar() {
 async function abrir(comCodigo) {
   const segredo = comCodigo ? $("#codigo-entrada").value : $("#senha").value;
   if (!segredo) return avisar(comCodigo ? "Digite o código." : "Digite a senha.");
+  selo("pensando");
   let ok;
   try {
     ok = await abrirCofre(segredo, comCodigo);
   } catch (e) {
+    selo("errou");
     return avisar(e.message);
   }
-  if (!ok) return avisar(comCodigo ? "Esse código não abre." : "Senha errada.");
+  if (!ok) {
+    selo("errou");
+    return avisar(comCodigo ? "Esse código não abre." : "Senha errada.");
+  }
+
+  selo("aberto");
   $("#senha").value = $("#codigo-entrada").value = "";
+  // A meia dúzia de décimos aqui é de propósito: é o tempo de o selo virar
+  // verde e a fechadura virar visto. Sem essa pausa, a confirmação seria
+  // pintada e apagada no mesmo quadro, e ninguém veria.
+  await new Promise((f) => setTimeout(f, 620));
   await entrar();
 }
 

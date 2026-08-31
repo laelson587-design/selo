@@ -2,3 +2,7 @@
 *.selo
 _fumaca.html
 .DS_Store
+
+# lixo de geracao de icone e rascunhos de desenho
+.chrome-icone/
+rascunho/

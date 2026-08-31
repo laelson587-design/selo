@@ -63,6 +63,31 @@ depois de destrancar. Isso vale igual para o banco e para o WhatsApp.
 Uma frase de quatro ou cinco palavras que só faça sentido para você vale mais do
 que qualquer coisa que o código faça.
 
+## O selo, e por que ele se mexe
+
+O ícone é um selo lacrado: dentes de selo oficial por fora — isto é documento —
+e um buraco de fechadura no meio — e ele está trancado. As duas metades do nome
+numa marca só.
+
+Na tela da tranca ele **muda de estado**, e isso não é enfeite. Conferir a senha
+leva de meio a um segundo, de propósito: a derivação da chave é lenta porque é
+isso que torna caro tentar senha por senha. Sem sinal nenhum, esse tempo
+pareceria o app travado.
+
+- **Vermelho parado** — trancado. É o repouso de um cofre, e dizê-lo em cor é
+  mais honesto que um cadeado cinza.
+- **Girando** — conferindo. Os dentes rodam enquanto a chave é derivada.
+- **Verde, com o visto no lugar da fechadura** — abriu. O selo deixa de trancar
+  e passa a certificar.
+- **Tremendo, ainda vermelho** — senha errada. O erro se distingue do repouso
+  pelo movimento, e não por outra cor: vermelho já quer dizer uma coisa só.
+
+Quem tem "menos movimento" ligado no aparelho recebe só a cor, que é o que
+informa.
+
+Os PNGs de 192 e 512 saem do `icone.svg` com `node scripts/icone.js` — quem
+rasteriza é o Chrome que já está na máquina, sem instalar nada.
+
 ## A cópia é o produto
 
 O problema é perda, então a cópia não é uma funcionalidade — é a razão de o app

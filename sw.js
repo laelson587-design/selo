@@ -12,7 +12,7 @@
 const VERSAO = "selo-v1";
 
 const CASCA = ["./", "./index.html", "./estilo.css", "./cofre.js", "./app.js",
-               "./manifest.json", "./icone.svg"];
+               "./manifest.json", "./icone.svg", "./icone-192.png", "./icone-512.png"];
 
 self.addEventListener("install", (ev) => {
   ev.waitUntil(caches.open(VERSAO).then((c) => c.addAll(CASCA)).then(() => self.skipWaiting()));
