@@ -350,11 +350,15 @@ function novoDocumento() {
 /**
  * Como cada arquivo se chama na tela. Documento brasileiro quase sempre tem
  * dois lados, e "cnh-frente-1723.jpg" não diz qual é qual na hora do aperto.
- * O padrão é palpite — frente, verso, página — e serve enquanto ninguém
- * corrigir; quem corrigir manda.
+ *
+ * Com UM arquivo só, porém, não há lado nenhum: um arquivo sozinho é o
+ * documento inteiro, e chamá-lo de "Frente" é palpite errado — ainda mais com
+ * PDF de escâner, que costuma trazer as duas faces dentro. Aí ele fica sem
+ * rótulo, e quem quiser dar nome dá.
  */
-function rotuloDe(a, i) {
+function rotuloDe(a, i, total) {
   if (a && a.rotulo) return a.rotulo;
+  if (total === 1) return "";
   return i === 0 ? "Frente" : i === 1 ? "Verso" : "Página " + (i + 1);
 }
 
@@ -462,7 +466,7 @@ async function pintarTiras(d) {
           ? `<img alt="" data-mini="${escapar(a.id)}">`
           : `<span class="selo-tipo">PDF</span>`}
       </span>
-      <span class="rot">${escapar(rotuloDe(a, i))}</span>
+      <span class="rot">${escapar(rotuloDe(a, i, arqs.length))}</span>
     </button>`).join("");
 
   for (const [i, a] of arqs.entries()) {
@@ -513,7 +517,7 @@ function compartilharDocumento() {
   $("#escolher-lista").innerHTML = arqs.map((a, i) => `
     <label class="opcao">
       <input type="checkbox" data-envio="${i}" ${i === arquivoNoPalco ? "checked" : ""}>
-      <span>${escapar(rotuloDe(a, i))}</span>
+      <span>${escapar(rotuloDe(a, i, arqs.length) || a.nome)}</span>
     </label>`).join("");
   $("#escolher-envio").classList.remove("oculto");
   pintarBotaoDeEnvio();
@@ -572,7 +576,8 @@ async function mandar(indices) {
  */
 function nomeDeSaida(a, i) {
   const ext = (a.nome.match(/\.[^.]+$/) || [""])[0];
-  const base = [docAtual.titulo || "Documento", rotuloDe(a, i)]
+  const rot = rotuloDe(a, i, (docAtual.arquivos || []).length);
+  const base = [docAtual.titulo || "Documento", rot].filter(Boolean)
     .join(" - ").replace(/[\\/:*?"<>|]/g, "-");
   return base + ext;
 }
@@ -651,7 +656,8 @@ async function pintarArquivos() {
         : `<span class="selo-tipo">PDF</span>`}
       <span class="cresce">
         <input class="rotulo-arq" type="text" data-i="${i}"
-               value="${escapar(a.rotulo || "")}" placeholder="${escapar(rotuloDe(a, i))}">
+               value="${escapar(a.rotulo || "")}"
+               placeholder="${escapar(rotuloDe(a, i, arqs.length) || "Dê um nome, se ajudar")}">
         <span class="sub">${escapar(a.nome)} · ${tamanhoBonito(a.tamanho)}</span>
       </span>
       <button class="icone ver" title="Abrir">↗</button>
