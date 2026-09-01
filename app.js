@@ -1141,6 +1141,20 @@ function ligar() {
   });
 }
 
+/**
+ * Qual versão está de fato aberta. Vem do nome do cache, e não de um número
+ * escrito no código: o service worker serve o que guardou, então um número
+ * fixo aqui poderia dizer "v7" enquanto a tela é a v3. O cache não mente.
+ */
+async function pintarVersao() {
+  let nome = "";
+  try {
+    const chaves = await caches.keys();
+    nome = chaves.filter((c) => c.startsWith("selo-")).sort().pop() || "";
+  } catch (e) { /* sem service worker, sem versão para mostrar */ }
+  $("#versao").textContent = nome ? "Versão " + nome.replace("selo-", "") : "";
+}
+
 async function comecar() {
   $("#doc-tipo").innerHTML = Object.keys(TIPOS)
     .map((t) => `<option value="${escapar(t)}">${escapar(t || "—")}</option>`).join("");
@@ -1155,6 +1169,8 @@ async function comecar() {
   // Pede ao navegador que não jogue fora os dados quando o aparelho apertar.
   // Aqui isso é mais sério que em app de recado: o que ele apagaria é a única
   // cópia digital de um documento.
+  await pintarVersao();
+
   let fixado = null;
   if (navigator.storage && navigator.storage.persist) {
     fixado = await navigator.storage.persist().catch(() => null);

@@ -198,16 +198,18 @@
       <input id="doc-titulo" type="text" placeholder="Ex.: CNH" autocomplete="off">
     </label>
 
-    <div class="dois">
-      <label class="campo">
-        <span class="rotulo">Tipo</span>
-        <select id="doc-tipo"></select>
-      </label>
-      <label class="campo">
-        <span class="rotulo">De quem</span>
-        <input id="doc-titular" type="text" placeholder="Você" autocomplete="off">
-      </label>
-    </div>
+    <!-- O tipo já dividiu a linha com "de quem", e ficava menor que todos os
+         outros campos sem motivo: ele é dos mais importantes, porque escolhe
+         os números sugeridos e o grupo na lista. Campo importante encolhido
+         parece campo secundário. -->
+    <label class="campo">
+      <span class="rotulo">Tipo</span>
+      <select id="doc-tipo"></select>
+    </label>
+    <label class="campo">
+      <span class="rotulo">De quem</span>
+      <input id="doc-titular" type="text" placeholder="Você" autocomplete="off">
+    </label>
 
     <label class="campo">
       <span class="rotulo">Situação</span>
@@ -311,6 +313,10 @@
     <h3>Onde isto mora</h3>
     <p class="dica" id="onde-mora">Tudo fica neste aparelho, cifrado. Nada sobe
        para servidor nenhum.</p>
+    <!-- A versão que está rodando de verdade, lida do cache do service worker.
+         Sem isto não havia como saber se o app abriu a versão nova ou a que
+         ficou guardada — e a resposta muda o diagnóstico de qualquer defeito. -->
+    <p class="dica mono" id="versao"></p>
   </div>
 </section>
 
