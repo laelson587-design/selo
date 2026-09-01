@@ -347,6 +347,17 @@ function novoDocumento() {
  * lista traz esta tela, e o formulário fica atrás de um botão.
  */
 
+/**
+ * Como cada arquivo se chama na tela. Documento brasileiro quase sempre tem
+ * dois lados, e "cnh-frente-1723.jpg" não diz qual é qual na hora do aperto.
+ * O padrão é palpite — frente, verso, página — e serve enquanto ninguém
+ * corrigir; quem corrigir manda.
+ */
+function rotuloDe(a, i) {
+  if (a && a.rotulo) return a.rotulo;
+  return i === 0 ? "Frente" : i === 1 ? "Verso" : "Página " + (i + 1);
+}
+
 let arquivoNoPalco = 0;
 let urlsDoVisor = [];   // as fotos decifradas viram endereços que precisam morrer
 
@@ -372,6 +383,7 @@ async function abrirDocumento(id) {
 async function pintarVisor() {
   const d = docAtual;
   soltarUrls();
+  $("#escolher-envio").classList.add("oculto");
   $("#ver-titulo").textContent = d.titulo || "Documento";
 
   await pintarPalco(d);
@@ -445,9 +457,12 @@ async function pintarTiras(d) {
 
   tiras.innerHTML = arqs.map((a, i) => `
     <button class="tira${i === arquivoNoPalco ? " agora" : ""}" data-tira="${i}">
-      ${a.tipo.startsWith("image/")
-        ? `<img alt="" data-mini="${escapar(a.id)}">`
-        : `<span class="selo-tipo">PDF</span>`}
+      <span class="quadro">
+        ${a.tipo.startsWith("image/")
+          ? `<img alt="" data-mini="${escapar(a.id)}">`
+          : `<span class="selo-tipo">PDF</span>`}
+      </span>
+      <span class="rot">${escapar(rotuloDe(a, i))}</span>
     </button>`).join("");
 
   for (const [i, a] of arqs.entries()) {
@@ -484,17 +499,50 @@ function pintarEstadoDoVisor(d) {
   el.classList.toggle("oculto", !partes.length);
 }
 
-/** Todos os arquivos de uma vez: quem pede a CNH quer a frente E o verso. */
-async function compartilharDocumento() {
+/**
+ * Com um arquivo só, compartilhar é um toque. Com mais de um, o app pergunta —
+ * e essa fricção é de propósito: pedem a frente do RG, e mandar os dois seria
+ * entregar mais documento do que foi pedido. Vem marcado o que está no palco,
+ * porque o que se vê é o que se espera mandar.
+ */
+function compartilharDocumento() {
   const arqs = docAtual.arquivos || [];
   if (!arqs.length) return;
+  if (arqs.length === 1) return mandar([0]);
 
+  $("#escolher-lista").innerHTML = arqs.map((a, i) => `
+    <label class="opcao">
+      <input type="checkbox" data-envio="${i}" ${i === arquivoNoPalco ? "checked" : ""}>
+      <span>${escapar(rotuloDe(a, i))}</span>
+    </label>`).join("");
+  $("#escolher-envio").classList.remove("oculto");
+  pintarBotaoDeEnvio();
+}
+
+function escolhidosParaEnvio() {
+  return $$("#escolher-lista [data-envio]")
+    .filter((c) => c.checked).map((c) => Number(c.dataset.envio));
+}
+
+function pintarBotaoDeEnvio() {
+  const n = escolhidosParaEnvio().length;
+  const b = $("#enviar-escolhidos");
+  b.disabled = n === 0;
+  b.textContent = n <= 1 ? "Mandar" : `Mandar os ${n}`;
+}
+
+async function mandar(indices) {
+  const arqs = docAtual.arquivos || [];
   const arquivos = [];
-  for (const a of arqs) {
+  for (const i of indices) {
+    const a = arqs[i];
+    if (!a) continue;
     const bytes = await lerArquivo(a.id).catch(() => null);
-    if (bytes) arquivos.push(new File([bytes], a.nome, { type: a.tipo }));
+    if (bytes) arquivos.push(new File([bytes], nomeDeSaida(a, i), { type: a.tipo }));
   }
   if (!arquivos.length) return avisar("Não consegui abrir os arquivos.");
+
+  $("#escolher-envio").classList.add("oculto");
 
   if (navigator.canShare && navigator.canShare({ files: arquivos })) {
     try {
@@ -503,7 +551,20 @@ async function compartilharDocumento() {
     } catch (e) { /* cancelar não é erro */ }
   }
   // Onde compartilhar arquivo não existe, abrir numa aba é o que sobra.
-  window.open(urlDe(await lerArquivo(arqs[0].id), arqs[0].tipo), "_blank", "noopener");
+  const bytes = await lerArquivo(arqs[indices[0]].id);
+  window.open(urlDe(bytes, arqs[indices[0]].tipo), "_blank", "noopener");
+}
+
+/**
+ * O nome com que o arquivo chega do outro lado. "IMG_20260901_113244.jpg" não
+ * diz nada a quem recebe; "RG - Frente.jpg" diz tudo, e é o que evita a pessoa
+ * ter de perguntar qual é qual.
+ */
+function nomeDeSaida(a, i) {
+  const ext = (a.nome.match(/\.[^.]+$/) || [""])[0];
+  const base = [docAtual.titulo || "Documento", rotuloDe(a, i)]
+    .join(" - ").replace(/[\\/:*?"<>|]/g, "-");
+  return base + ext;
 }
 
 async function baixarDoVisor() {
@@ -515,7 +576,7 @@ async function baixarDoVisor() {
 
   const link = document.createElement("a");
   link.href = urlDe(bytes, a.tipo);
-  link.download = a.nome;
+  link.download = nomeDeSaida(a, arqs.indexOf(a));
   link.click();
   avisar("Baixado.");
 }
@@ -573,14 +634,15 @@ async function pintarArquivos() {
     el.innerHTML = `<p class="vazio">Nenhum arquivo ainda.</p>`;
     return;
   }
-  el.innerHTML = arqs.map((a) => `
+  el.innerHTML = arqs.map((a, i) => `
     <div class="arquivo" data-arq="${escapar(a.id)}">
       ${a.tipo.startsWith("image/")
         ? `<img alt="" data-miniatura="${escapar(a.id)}">`
         : `<span class="selo-tipo">PDF</span>`}
       <span class="cresce">
-        <span class="nome">${escapar(a.nome)}</span>
-        <span class="sub">${tamanhoBonito(a.tamanho)}</span>
+        <input class="rotulo-arq" type="text" data-i="${i}"
+               value="${escapar(a.rotulo || "")}" placeholder="${escapar(rotuloDe(a, i))}">
+        <span class="sub">${escapar(a.nome)} · ${tamanhoBonito(a.tamanho)}</span>
       </span>
       <button class="icone ver" title="Abrir">↗</button>
       <button class="icone tirar-arq" title="Tirar">×</button>
@@ -917,6 +979,11 @@ function ligar() {
   $("#ver-editar").addEventListener("click", editarDoVisor);
   $("#ver-editar2").addEventListener("click", editarDoVisor);
   $("#ver-compartilhar").addEventListener("click", compartilharDocumento);
+  $("#cancelar-envio").addEventListener("click", () => {
+    $("#escolher-envio").classList.add("oculto");
+  });
+  $("#enviar-escolhidos").addEventListener("click", () => mandar(escolhidosParaEnvio()));
+  $("#escolher-lista").addEventListener("change", pintarBotaoDeEnvio);
   $("#ver-baixar").addEventListener("click", baixarDoVisor);
 
   $("#ver-campos").addEventListener("click", async (e) => {
@@ -975,6 +1042,14 @@ function ligar() {
   });
   $("#ent-arquivo").addEventListener("change", (e) => {
     porArquivos(Array.from(e.target.files), false); e.target.value = "";
+  });
+
+  // O rótulo digitado entra no documento na hora, e não só ao salvar: repintar
+  // a lista de arquivos depois de acrescentar outro apagaria o que foi escrito.
+  $("#doc-arquivos").addEventListener("change", (e) => {
+    if (!e.target.classList.contains("rotulo-arq")) return;
+    const a = docAtual.arquivos[Number(e.target.dataset.i)];
+    if (a) a.rotulo = e.target.value.trim();
   });
 
   $("#doc-arquivos").addEventListener("click", (e) => {

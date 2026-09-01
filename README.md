@@ -163,6 +163,13 @@ Agora o toque abre o **visor**: o documento grande em cima, frente e verso numa
 tira quando há mais de um arquivo, e embaixo os números — cada um é um botão, e
 um toque copia. As três ações à mão: compartilhar, baixar e editar.
 
+**Frente e verso têm nome, e você escolhe o que sai.** Cada arquivo ganha um
+rótulo — Frente, Verso, Página 2 — e com mais de um o app pergunta o que mandar,
+já marcando o que está na tela. Pedem só a frente do RG: mandar os dois seria
+entregar mais documento do que foi pedido, que é justo o erro que este app
+existe para não cometer. O arquivo chega do outro lado como
+"RG - Frente.jpg", e não como "IMG_20260901_113244.jpg".
+
 **Não existe selo de "documento verificado", e não vai existir.** O app não fala
 com o Detran nem com cartório nenhum; um carimbo de válido seria confiança
 inventada bem onde ela é perigosa. O que ele diz com verdade é quando vence, e

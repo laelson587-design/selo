@@ -258,16 +258,38 @@ button { font: inherit; cursor: pointer; }
 .palco-pdf .nome { font-size: 15px; font-weight: 600; }
 .palco-pdf .sub { font-size: 13px; color: var(--fraco); }
 
-/* Frente e verso. So aparece com mais de um arquivo. */
-.tiras { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; }
+/* Frente e verso. So aparece com mais de um arquivo, e cada um leva o nome:
+   sem ele, escolher qual mandar seria escolher no escuro. */
+.tiras { display: flex; gap: 10px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; }
 .tira {
-  flex: 0 0 auto; width: 62px; height: 46px; padding: 0;
-  border: 2px solid var(--borda); border-radius: 10px;
-  background: #0b0d12; overflow: hidden;
+  flex: 0 0 auto; padding: 0; border: 0; background: transparent;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.tira .quadro {
+  width: 66px; height: 48px; overflow: hidden;
+  border: 2px solid var(--borda); border-radius: 10px; background: #0b0d12;
   display: flex; align-items: center; justify-content: center;
 }
-.tira.agora { border-color: var(--marca); }
+.tira.agora .quadro { border-color: var(--marca); }
+.tira .rot { font-size: 11px; font-weight: 600; color: var(--fraco); }
+.tira.agora .rot { color: var(--marca); }
 .tira img { width: 100%; height: 100%; object-fit: cover; }
+
+/* O painel de escolher o que mandar. */
+.escolha {
+  margin-top: 18px; padding: 14px 16px;
+  background: var(--carta); border: 1px solid var(--marca);
+  border-radius: var(--raio);
+}
+.escolha .titulo-forte { font-size: 15px; margin-bottom: 4px; }
+.escolha .opcao { margin-top: 8px; }
+.escolha .botoes { margin-top: 12px; }
+.escolha .principal, .escolha .secundario { margin-top: 0; }
+
+/* O rotulo do arquivo, editavel na tela de edicao. */
+.arquivo .rotulo-arq {
+  padding: 7px 10px; font-size: 14px; font-weight: 600; margin-bottom: 3px;
+}
 
 /* Os carimbos do que e verdade: vencimento e situacao. Nunca "verificado". */
 .carimbo {

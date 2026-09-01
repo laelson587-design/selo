@@ -164,6 +164,19 @@
     <p class="dica">Toque num número para copiar.</p>
     <div id="ver-campos" class="fichas"></div>
 
+    <!-- Com mais de um arquivo, mandar não é um toque só: é escolher o que
+         sai. Pedem a frente do RG e o app mandar frente e verso seria entregar
+         mais documento do que foi pedido — o erro exato que este app existe
+         para não cometer. -->
+    <div id="escolher-envio" class="escolha oculto">
+      <p class="titulo-forte">O que você quer mandar?</p>
+      <div id="escolher-lista"></div>
+      <div class="botoes">
+        <button id="enviar-escolhidos" class="principal">Mandar</button>
+        <button id="cancelar-envio" class="secundario">Cancelar</button>
+      </div>
+    </div>
+
     <div class="acoes">
       <button id="ver-compartilhar" class="acao">Compartilhar</button>
       <button id="ver-baixar" class="acao">Baixar</button>
