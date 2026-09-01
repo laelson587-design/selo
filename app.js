@@ -550,9 +550,19 @@ async function mandar(indices) {
       return;
     } catch (e) { /* cancelar não é erro */ }
   }
-  // Onde compartilhar arquivo não existe, abrir numa aba é o que sobra.
-  const bytes = await lerArquivo(arqs[indices[0]].id);
-  window.open(urlDe(bytes, arqs[indices[0]].tipo), "_blank", "noopener");
+
+  // Onde compartilhar arquivo não existe, ou não aceita mais de um, cada
+  // escolhido é baixado. Antes daqui saía só o primeiro, calado: quem pediu
+  // dois recebia um e não ficava sabendo — pior que não ter compartilhamento.
+  for (const f of arquivos) {
+    const link = document.createElement("a");
+    link.href = urlDe(new Uint8Array(await f.arrayBuffer()), f.type);
+    link.download = f.name;
+    link.click();
+  }
+  avisar(arquivos.length === 1
+    ? "Este aparelho não compartilha arquivo. Baixei para você anexar."
+    : `Este aparelho não compartilha arquivo. Baixei os ${arquivos.length} para você anexar.`);
 }
 
 /**
