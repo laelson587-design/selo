@@ -139,7 +139,7 @@
     <div id="lista" class="lista"></div>
 
     <button id="novo" class="principal">Guardar um documento</button>
-    <button id="ir-ajustes" class="secundario">Cópia de segurança e senha</button>
+    <button id="ir-ajustes" class="secundario">Ajustes e segurança</button>
   </div>
 </section>
 
@@ -250,11 +250,23 @@
 <section id="tela-ajustes" class="tela">
   <header class="cabecalho">
     <button id="voltar-ajustes" class="icone" aria-label="Voltar">←</button>
-    <h1>Cópia e senha</h1>
+    <h1>Ajustes e segurança</h1>
   </header>
 
   <div class="corpo">
     <div id="cobranca" class="alerta oculto"></div>
+
+    <!-- Em primeiro porque é o que se vem procurar. A cópia é mais importante,
+         mas ela se cobra sozinha no cartão acima; ninguém vai atrás dela num
+         menu. O botão só aparece onde a tranca por rosto funciona de verdade —
+         onde não funciona, esta seção explica por quê, em vez de sumir e
+         deixar a pessoa achando que o app não tem. -->
+    <h3>Abrir com rosto ou digital</h3>
+    <p class="dica" id="rosto-explica"></p>
+    <div id="bloco-rosto" class="oculto">
+      <button id="ligar-rosto" class="secundario">Ligar</button>
+      <button id="desligar-rosto" class="secundario oculto">Desligar</button>
+    </div>
 
     <h3>Cópia de segurança</h3>
     <p class="dica">É a razão de este app existir. O arquivo sai <b>cifrado</b>:
@@ -276,16 +288,6 @@
       <input id="senha-troca" type="password" autocomplete="new-password">
     </label>
     <button id="trocar-senha" class="secundario">Trocar a senha</button>
-
-    <!-- Some inteira onde o aparelho não tem leitor, ou onde o navegador não
-         sabe guardar segredo por ele. Botão que promete o que não cumpre é
-         pior que botão nenhum. -->
-    <div id="bloco-rosto" class="oculto">
-      <h3>Abrir com rosto ou digital</h3>
-      <p class="dica" id="rosto-explica"></p>
-      <button id="ligar-rosto" class="secundario">Ligar</button>
-      <button id="desligar-rosto" class="secundario oculto">Desligar</button>
-    </div>
 
     <h3>Código de recuperação</h3>
     <p class="dica">Perdeu a folha? Tire outra. A anterior deixa de valer na

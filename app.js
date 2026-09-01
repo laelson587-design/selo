@@ -785,13 +785,26 @@ async function restaurarDe(arquivo, jaEstouDentro) {
 /* -------------------------------------------------------------- ajustes */
 
 /**
- * A seção do rosto nos ajustes. Ela some inteira onde não dá para fazer a coisa
- * direito — e o texto diz o que ela é: uma porta mais rápida, não mais forte.
+ * A seção do rosto nos ajustes.
+ *
+ * O botão some onde a tranca não funcionaria de verdade — mas o texto fica, e
+ * diz por quê. Sumir inteiro era pior: quem procurasse a função concluiria que
+ * o app não tem, quando na maioria das vezes o que falta é bloqueio de tela
+ * configurado no próprio celular.
  */
 async function pintarRosto() {
   const podeAqui = await biometriaPossivel();
   $("#bloco-rosto").classList.toggle("oculto", !podeAqui);
-  if (!podeAqui) return;
+
+  if (!podeAqui) {
+    $("#rosto-explica").innerHTML =
+      "<b>Este aparelho não oferece leitor ao navegador.</b> Quase sempre é " +
+      "porque falta bloqueio de tela com digital ou rosto cadastrado no próprio " +
+      "celular — configure lá e volte aqui. No computador, depende de o aparelho " +
+      "ter leitor. E o Selo precisa estar aberto pelo endereço da internet, não " +
+      "por um arquivo solto.";
+    return;
+  }
 
   const ligada = await biometriaLigada();
   $("#ligar-rosto").classList.toggle("oculto", ligada);
