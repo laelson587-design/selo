@@ -143,7 +143,36 @@
   </div>
 </section>
 
-<!-- ======================= UM DOCUMENTO ======================= -->
+<!-- ======================= VER UM DOCUMENTO =======================
+     Esta é a tela que se usa. Abrir um documento é quase sempre olhar para
+     ele, copiar um número ou mandar para alguém — editar acontece uma vez, no
+     cadastro, e quase nunca mais. Antes o toque abria o formulário: a tela de
+     5% na frente da de 95%. -->
+<section id="tela-ver" class="tela">
+  <header class="cabecalho">
+    <button id="ver-voltar" class="icone" aria-label="Voltar">←</button>
+    <h1 id="ver-titulo">Documento</h1>
+    <button id="ver-editar" class="icone" aria-label="Editar">✎</button>
+  </header>
+
+  <div class="corpo">
+    <div id="ver-palco" class="palco"></div>
+    <div id="ver-tiras" class="tiras"></div>
+    <div id="ver-estado"></div>
+
+    <h3>Informações</h3>
+    <p class="dica">Toque num número para copiar.</p>
+    <div id="ver-campos" class="fichas"></div>
+
+    <div class="acoes">
+      <button id="ver-compartilhar" class="acao">Compartilhar</button>
+      <button id="ver-baixar" class="acao">Baixar</button>
+      <button id="ver-editar2" class="acao">Editar</button>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= EDITAR UM DOCUMENTO ======================= -->
 <section id="tela-doc" class="tela">
   <header class="cabecalho">
     <button id="voltar" class="icone" aria-label="Voltar">←</button>

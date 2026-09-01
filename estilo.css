@@ -229,6 +229,89 @@ button { font: inherit; cursor: pointer; }
 .dica + .campo, .dica + .opcao { margin-top: 16px; }
 .dica b { color: var(--texto); }
 
+/* ---------- o visor ----------
+ *
+ * O documento em cima e grande, porque olhar para ele e o que se faz aqui.
+ * Fundo escuro atras da foto: papel branco no claro estoura, e a moldura
+ * escura tambem faz o documento parecer um documento, e nao um anexo.
+ */
+
+.palco {
+  margin: 4px 0 10px; border-radius: var(--raio);
+  background: #0b0d12; border: 1px solid var(--borda);
+  overflow: hidden; min-height: 180px;
+  display: flex; align-items: center; justify-content: center;
+}
+.palco img { display: block; width: 100%; height: auto; }
+
+.palco-vazio {
+  padding: 34px 20px; text-align: center; color: var(--fraco); font-size: 14px;
+}
+.palco-vazio b { display: block; margin-bottom: 4px; color: #eef1f6; font-size: 15px; }
+.palco-vazio.perdi b { color: var(--ruim); }
+
+.palco-pdf {
+  width: 100%; padding: 30px 20px; background: transparent; border: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: #eef1f6;
+}
+.palco-pdf .nome { font-size: 15px; font-weight: 600; }
+.palco-pdf .sub { font-size: 13px; color: var(--fraco); }
+
+/* Frente e verso. So aparece com mais de um arquivo. */
+.tiras { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; }
+.tira {
+  flex: 0 0 auto; width: 62px; height: 46px; padding: 0;
+  border: 2px solid var(--borda); border-radius: 10px;
+  background: #0b0d12; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.tira.agora { border-color: var(--marca); }
+.tira img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Os carimbos do que e verdade: vencimento e situacao. Nunca "verificado". */
+.carimbo {
+  display: inline-block; margin: 0 6px 6px 0; padding: 6px 12px;
+  border-radius: 999px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--borda); background: var(--carta); color: var(--fraco);
+}
+.carimbo.tenho { color: var(--bom); border-color: var(--bom); }
+.carimbo.falta { color: var(--atencao); border-color: var(--atencao); }
+.carimbo.perdi { color: var(--ruim); border-color: var(--ruim); }
+
+/* Cada numero e um botao: um toque copia. */
+.fichas { display: flex; flex-direction: column; gap: 8px; }
+.ficha {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 12px 14px; background: var(--carta); color: var(--texto);
+  border: 1px solid var(--borda); border-radius: var(--raio);
+}
+.ficha:disabled { opacity: 1; }
+.ficha .rot {
+  flex: 0 0 38%; font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--fraco);
+}
+.ficha .val { flex: 1; min-width: 0; font-size: 15px; word-break: break-word; }
+.ficha .copia { flex: 0 0 auto; color: var(--tenue); font-size: 15px; }
+
+.acoes { display: flex; gap: 8px; margin-top: 22px; }
+.acao {
+  flex: 1; padding: 14px 6px; font-size: 14px; font-weight: 700;
+  background: var(--carta); color: var(--texto);
+  border: 1px solid var(--borda); border-radius: var(--raio);
+}
+.acao:disabled { opacity: 0.4; }
+.acao:active { filter: brightness(0.94); }
+
+/* O titulo de cada grupo da lista. */
+.grupo {
+  margin: 18px 0 2px; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--fraco);
+}
+.lista .grupo:first-child { margin-top: 4px; }
+
+.selo-tipo.grande { width: 64px; height: 64px; font-size: 15px; }
+
 /* ---------- listas ---------- */
 
 .lista { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }

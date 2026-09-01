@@ -30,8 +30,27 @@ const TIPOS = {
   "Passaporte": ["Número"],
   "Comprovante de residência": ["Referente a"],
   "Cartão do SUS": ["Número"],
+  "CRLV": ["Renavam", "Placa", "Chassi"],
+  "Seguro do veículo": ["Apólice", "Seguradora"],
   "Outro": [],
 };
+
+/* Onde cada tipo mora na lista. Com cinco documentos a lista plana serve; com
+   vinte e cinco vira rolagem, e a pessoa procura com o olho em vez de com a
+   busca. O que não se encaixa cai em Outros — grupo vazio não aparece. */
+const GRUPOS = [
+  ["Pessoais", ["RG", "CPF", "CNH", "Título de eleitor", "PIS/PASEP",
+                "Certidão", "Passaporte", "Cartão do SUS"]],
+  ["Trabalho e estudo", ["CTPS", "Diploma"]],
+  ["Residência", ["Comprovante de residência"]],
+  ["Veículo", ["CRLV", "Seguro do veículo"]],
+  ["Outros", []],
+];
+
+function grupoDe(tipo) {
+  for (const [nome, tipos] of GRUPOS) if (tipos.includes(tipo)) return nome;
+  return "Outros";
+}
 
 let docAtual = null;      // o documento aberto na tela, ainda não salvo
 let relogioTranca = null;
@@ -125,6 +144,7 @@ function cofreAberto() { return estaAberto(); }
 
 function trancarTudo() {
   trancar();
+  soltarUrls();
   docAtual = null;
   clearTimeout(relogioTranca);
   $("#senha").value = "";
@@ -251,25 +271,38 @@ async function pintarLista() {
     return;
   }
 
-  lista.innerHTML = vistos.map((d) => {
-    const classe = d.situacao === "TENHO" ? "tenho"
-      : d.situacao === "FALTA_DIGITALIZAR" ? "falta" : "perdi";
-    const partes = [];
-    if (d.titular) partes.push(d.titular);
-    if (d.situacao === "FALTA_DIGITALIZAR") partes.push("falta digitalizar");
-    else if (d.situacao === "A_RECUPERAR") partes.push("a recuperar");
-    else if (d.arquivos.length) {
-      partes.push(`${d.arquivos.length} ${d.arquivos.length === 1 ? "arquivo" : "arquivos"}`);
-    }
-    if (d.validade) partes.push("vence " + dataCurta(d.validade));
-    return `<button class="item ${classe}" data-doc="${escapar(d.id)}">
-      <span class="cresce">
-        <span class="nome">${escapar(d.titulo || "Sem nome")}</span>
-        <span class="sub">${escapar(partes.join(" · "))}</span>
-      </span>
-      <span class="seta">›</span>
-    </button>`;
+  // Buscando, a lista vem plana: quem digitou já disse o que quer, e separar
+  // em grupos só afastaria os resultados uns dos outros.
+  if (busca) {
+    lista.innerHTML = vistos.map(itemDaLista).join("");
+    return;
+  }
+
+  lista.innerHTML = GRUPOS.map(([nome]) => {
+    const doGrupo = vistos.filter((d) => grupoDe(d.tipo) === nome);
+    if (!doGrupo.length) return "";
+    return `<p class="grupo">${escapar(nome)}</p>` + doGrupo.map(itemDaLista).join("");
   }).join("");
+}
+
+function itemDaLista(d) {
+  const classe = d.situacao === "TENHO" ? "tenho"
+    : d.situacao === "FALTA_DIGITALIZAR" ? "falta" : "perdi";
+  const partes = [];
+  if (d.titular) partes.push(d.titular);
+  if (d.situacao === "FALTA_DIGITALIZAR") partes.push("falta digitalizar");
+  else if (d.situacao === "A_RECUPERAR") partes.push("a recuperar");
+  else if (d.arquivos.length) {
+    partes.push(`${d.arquivos.length} ${d.arquivos.length === 1 ? "arquivo" : "arquivos"}`);
+  }
+  if (d.validade) partes.push("vence " + dataCurta(d.validade));
+  return `<button class="item ${classe}" data-doc="${escapar(d.id)}">
+    <span class="cresce">
+      <span class="nome">${escapar(d.titulo || "Sem nome")}</span>
+      <span class="sub">${escapar(partes.join(" · "))}</span>
+    </span>
+    <span class="seta">›</span>
+  </button>`;
 }
 
 /**
@@ -307,9 +340,187 @@ function novoDocumento() {
   irPara("doc");
 }
 
+/* ------------------------------------------------------------------ o visor
+ *
+ * Abrir um documento é olhar para ele, copiar um número ou mandar para
+ * alguém. Editar é o que se faz uma vez, no cadastro. Por isso o toque na
+ * lista traz esta tela, e o formulário fica atrás de um botão.
+ */
+
+let arquivoNoPalco = 0;
+let urlsDoVisor = [];   // as fotos decifradas viram endereços que precisam morrer
+
+function soltarUrls() {
+  for (const u of urlsDoVisor) URL.revokeObjectURL(u);
+  urlsDoVisor = [];
+}
+
+function urlDe(bytes, tipo) {
+  const u = URL.createObjectURL(new Blob([bytes], { type: tipo }));
+  urlsDoVisor.push(u);
+  return u;
+}
+
 async function abrirDocumento(id) {
   docAtual = await lerDocumento(id);
   if (!docAtual) return avisar("Esse documento não está mais aqui.");
+  arquivoNoPalco = 0;
+  await pintarVisor();
+  irPara("ver");
+}
+
+async function pintarVisor() {
+  const d = docAtual;
+  soltarUrls();
+  $("#ver-titulo").textContent = d.titulo || "Documento";
+
+  await pintarPalco(d);
+  pintarTiras(d);
+  pintarEstadoDoVisor(d);
+
+  /* O que os formulários pedem digitado, na ordem em que se usa. Cada linha é
+     um botão: um toque copia, que é para isso que a pessoa abriu o app. */
+  const linhas = [];
+  if (d.titular) linhas.push(["De quem", d.titular, false]);
+  for (const [nome, valor] of Object.entries(d.campos || {})) {
+    if (valor) linhas.push([nome || "Número", valor, true]);
+  }
+  if (d.validade) linhas.push(["Vence em", dataCurta(d.validade), false]);
+
+  $("#ver-campos").innerHTML = linhas.length
+    ? linhas.map(([nome, valor, copiavel]) => `
+        <button class="ficha" ${copiavel ? `data-copiar="${escapar(valor)}"` : "disabled"}>
+          <span class="rot">${escapar(nome)}</span>
+          <span class="val mono">${escapar(valor)}</span>
+          ${copiavel ? `<span class="copia">⧉</span>` : ""}
+        </button>`).join("")
+    : `<p class="vazio">Nenhum número guardado ainda.</p>`;
+
+  const temArquivo = (d.arquivos || []).length > 0;
+  $("#ver-compartilhar").disabled = !temArquivo;
+  $("#ver-baixar").disabled = !temArquivo;
+}
+
+async function pintarPalco(d) {
+  const palco = $("#ver-palco");
+  const arqs = d.arquivos || [];
+
+  if (!arqs.length) {
+    // Sem arquivo, o palco não fica vazio: ele mostra o que fazer a respeito.
+    palco.innerHTML = d.situacao === "A_RECUPERAR"
+      ? `<div class="palco-vazio perdi">
+           <b>Você ainda não tem este documento</b>
+           <span>${escapar(d.ondeRecuperar || "Anote na edição onde pedir a segunda via.")}</span>
+         </div>`
+      : `<div class="palco-vazio">
+           <b>Nenhuma foto ou arquivo</b>
+           <span>Toque em Editar para digitalizar.</span>
+         </div>`;
+    return;
+  }
+
+  const a = arqs[Math.min(arquivoNoPalco, arqs.length - 1)];
+  const bytes = await lerArquivo(a.id).catch(() => null);
+  if (!bytes) {
+    palco.innerHTML = `<div class="palco-vazio">
+      <b>Este arquivo não abre</b><span>Ele pode ter sido perdido pelo navegador.</span></div>`;
+    return;
+  }
+
+  palco.innerHTML = a.tipo.startsWith("image/")
+    ? `<img src="${urlDe(bytes, a.tipo)}" alt="${escapar(a.nome)}">`
+    : `<button class="palco-pdf" id="palco-abrir">
+         <span class="selo-tipo grande">PDF</span>
+         <span class="nome">${escapar(a.nome)}</span>
+         <span class="sub">${tamanhoBonito(a.tamanho)} · toque para abrir</span>
+       </button>`;
+}
+
+/* A tira só existe com mais de um arquivo, que é o caso de frente e verso. */
+async function pintarTiras(d) {
+  const arqs = d.arquivos || [];
+  const tiras = $("#ver-tiras");
+  tiras.classList.toggle("oculto", arqs.length < 2);
+  if (arqs.length < 2) return;
+
+  tiras.innerHTML = arqs.map((a, i) => `
+    <button class="tira${i === arquivoNoPalco ? " agora" : ""}" data-tira="${i}">
+      ${a.tipo.startsWith("image/")
+        ? `<img alt="" data-mini="${escapar(a.id)}">`
+        : `<span class="selo-tipo">PDF</span>`}
+    </button>`).join("");
+
+  for (const [i, a] of arqs.entries()) {
+    if (!a.tipo.startsWith("image/")) continue;
+    const bytes = await lerArquivo(a.id).catch(() => null);
+    if (!bytes) continue;
+    const img = tiras.querySelector(`[data-mini="${a.id}"]`);
+    if (img) img.src = urlDe(bytes, a.tipo);
+  }
+}
+
+/**
+ * O carimbo de situação. Não existe "documento verificado" aqui, e não vai
+ * existir: o app não fala com o Detran nem com cartório nenhum, e um selo de
+ * válido seria confiança inventada bem onde ela é perigosa. O que dá para
+ * dizer com verdade é quando vence e se você tem o papel.
+ */
+function pintarEstadoDoVisor(d) {
+  const el = $("#ver-estado");
+  const partes = [];
+
+  if (d.situacao === "A_RECUPERAR") partes.push(["perdi", "Perdido — a recuperar"]);
+  else if (d.situacao === "FALTA_DIGITALIZAR") partes.push(["falta", "Você tem o papel, falta digitalizar"]);
+
+  if (d.validade) {
+    const dias = diasAte(d.validade);
+    const texto = dias < 0 ? `Venceu em ${dataCurta(d.validade)}`
+      : dias === 0 ? "Vence hoje"
+      : `Vence em ${dias} ${dias === 1 ? "dia" : "dias"} · ${dataCurta(d.validade)}`;
+    partes.push([dias < 0 ? "perdi" : dias <= 60 ? "falta" : "tenho", texto]);
+  }
+
+  el.innerHTML = partes.map(([c, t]) => `<span class="carimbo ${c}">${escapar(t)}</span>`).join("");
+  el.classList.toggle("oculto", !partes.length);
+}
+
+/** Todos os arquivos de uma vez: quem pede a CNH quer a frente E o verso. */
+async function compartilharDocumento() {
+  const arqs = docAtual.arquivos || [];
+  if (!arqs.length) return;
+
+  const arquivos = [];
+  for (const a of arqs) {
+    const bytes = await lerArquivo(a.id).catch(() => null);
+    if (bytes) arquivos.push(new File([bytes], a.nome, { type: a.tipo }));
+  }
+  if (!arquivos.length) return avisar("Não consegui abrir os arquivos.");
+
+  if (navigator.canShare && navigator.canShare({ files: arquivos })) {
+    try {
+      await navigator.share({ files: arquivos, title: docAtual.titulo || "Documento" });
+      return;
+    } catch (e) { /* cancelar não é erro */ }
+  }
+  // Onde compartilhar arquivo não existe, abrir numa aba é o que sobra.
+  window.open(urlDe(await lerArquivo(arqs[0].id), arqs[0].tipo), "_blank", "noopener");
+}
+
+async function baixarDoVisor() {
+  const arqs = docAtual.arquivos || [];
+  if (!arqs.length) return;
+  const a = arqs[Math.min(arquivoNoPalco, arqs.length - 1)];
+  const bytes = await lerArquivo(a.id).catch(() => null);
+  if (!bytes) return avisar("Esse arquivo não abre.");
+
+  const link = document.createElement("a");
+  link.href = urlDe(bytes, a.tipo);
+  link.download = a.nome;
+  link.click();
+  avisar("Baixado.");
+}
+
+function editarDoVisor() {
   pintarDocumento();
   irPara("doc");
 }
@@ -399,7 +610,8 @@ async function salvarDocumento() {
 
   docAtual = await guardarDocumento(d);
   await pintarLista();
-  irPara("lista");
+  await pintarVisor();
+  irPara("ver");
   avisar("Guardado.");
 }
 
@@ -676,7 +888,42 @@ function ligar() {
     if (b) abrirDocumento(b.dataset.doc);
   });
 
-  $("#voltar").addEventListener("click", async () => { await pintarLista(); irPara("lista"); });
+  // Sair da edição volta para o visor quando o documento já existe: quem
+  // entrou para conferir um número não quer cair na lista de novo.
+  $("#voltar").addEventListener("click", async () => {
+    if (docAtual && docAtual.id) { await pintarVisor(); return irPara("ver"); }
+    await pintarLista();
+    irPara("lista");
+  });
+
+  $("#ver-voltar").addEventListener("click", async () => {
+    soltarUrls();
+    await pintarLista();
+    irPara("lista");
+  });
+  $("#ver-editar").addEventListener("click", editarDoVisor);
+  $("#ver-editar2").addEventListener("click", editarDoVisor);
+  $("#ver-compartilhar").addEventListener("click", compartilharDocumento);
+  $("#ver-baixar").addEventListener("click", baixarDoVisor);
+
+  $("#ver-campos").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-copiar]");
+    if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.copiar); avisar("Copiado."); }
+    catch (err) { avisar("Não deu para copiar."); }
+  });
+
+  $("#ver-tiras").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-tira]");
+    if (!b) return;
+    arquivoNoPalco = Number(b.dataset.tira);
+    await pintarPalco(docAtual);
+    pintarTiras(docAtual);
+  });
+
+  $("#ver-palco").addEventListener("click", (e) => {
+    if (e.target.closest("#palco-abrir")) baixarDoVisor();
+  });
   $("#doc-situacao").addEventListener("change", pintarSituacao);
   $("#doc-tipo").addEventListener("change", () => {
     // Trocar o tipo sugere os números daquele documento, sem apagar o que já

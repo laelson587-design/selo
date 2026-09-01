@@ -152,6 +152,27 @@ puxado. Papel fica mais legível assim, e muito mais leve.
 **CNH e CTPS não devem ser fotografados.** O que sai do gov.br é PDF com código
 de validação, e é justamente isso que dá valor a eles. Entram intactos.
 
+## Tocar num documento abre o documento
+
+Parece óbvio, mas a primeira versão errava: o toque abria o **formulário de
+edição**. Só que abrir um documento é quase sempre olhar para ele, copiar um
+número ou mandar para alguém — editar acontece uma vez, no cadastro, e quase
+nunca mais. Era a tela de 5% na frente da de 95%.
+
+Agora o toque abre o **visor**: o documento grande em cima, frente e verso numa
+tira quando há mais de um arquivo, e embaixo os números — cada um é um botão, e
+um toque copia. As três ações à mão: compartilhar, baixar e editar.
+
+**Não existe selo de "documento verificado", e não vai existir.** O app não fala
+com o Detran nem com cartório nenhum; um carimbo de válido seria confiança
+inventada bem onde ela é perigosa. O que ele diz com verdade é quando vence, e
+se você tem o papel.
+
+A lista também deixou de ser plana: os documentos vêm agrupados em Pessoais,
+Trabalho e estudo, Residência, Veículo e Outros. Com cinco documentos tanto faz;
+com vinte e cinco, é a diferença entre achar com o olho e ter de buscar.
+Buscando, a lista volta a ser plana — quem digitou já disse o que quer.
+
 ## As três situações
 
 Um documento pode existir aqui **antes do arquivo**:
