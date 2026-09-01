@@ -229,6 +229,9 @@ subir.**
 
 - **Sincronia automática.** Hoje a cópia é manual. Numa segunda etapa vira envio
   cifrado antes de sair, para o servidor guardar um borrão.
-- **Ler o número da foto sozinho.** Se fosse por serviço externo, seria entregar
-  o documento; no aparelho, é pesado. Só se fizer falta.
+- **Ler o número do documento sozinho.** Avaliado e adiado, nas três formas:
+  OCR na foto é impreciso e pesaria uns 20 MB de biblioteca; ler o texto que já
+  vem dentro do PDF do gov.br seria exato e barato; e o QR o navegador lê sem
+  baixar nada. Nenhuma entra por ora — digitar o número uma vez, no cadastro,
+  não é o gargalo, e cada uma delas é código a mais para manter.
 - **Endireitar a perspectiva.** O escâner do celular já resolve.
